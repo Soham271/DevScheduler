@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
-import { Code2, Search, Activity, Trophy, Flame, Mail, Send } from 'lucide-react';
+import { getUserEmail, getLocalProfile } from '../utils/auth';
+import {
+  Code2, Search, Activity, Trophy, Flame, Mail, Send,
+  TrendingUp, Calendar
+} from 'lucide-react';
 
 const Dashboard = () => {
-  const [username, setUsername] = useState('');
+  const email = getUserEmail();
+  const profile = getLocalProfile();
+  const initial = email ? email.charAt(0).toUpperCase() : '?';
+
+  const [username, setUsername] = useState(profile?.leetcode_username || '');
   const [analysis, setAnalysis] = useState(null);
   const [analyzeError, setAnalyzeError] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -23,7 +31,7 @@ const Dashboard = () => {
     setAnalysis(null);
 
     try {
-      const data = await api.postAuth(`/analyze/leetcode/${username}`);
+      const data = await api.postAuth(`/analyze/leetcode/${encodeURIComponent(username.trim())}`);
       setAnalysis(data);
     } catch (err) {
       setAnalyzeError(err.message || 'Failed to analyze user. Please try again.');
@@ -38,7 +46,6 @@ const Dashboard = () => {
     setScheduleStatus('');
 
     try {
-      // Payload expected by backend for /schedule-email
       await api.postAuth('/schedule-email', {
         subject: emailSubject,
         body: emailBody,
@@ -52,21 +59,44 @@ const Dashboard = () => {
     } finally {
       setIsScheduling(false);
     }
-  }
+  };
 
   return (
     <div className="dashboard-container">
+      {/* Header with greeting */}
       <div className="dashboard-header">
-        <h1>Welcome to your Dashboard</h1>
-        <p>Analyze your coding profile metrics and set reminders</p>
+        <div className="dashboard-avatar">{initial}</div>
+        <div className="dashboard-greeting">
+          <h1>Welcome back 👋</h1>
+          <p>{email || 'DevFlow User'}</p>
+        </div>
       </div>
 
-      <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      {/* Platform badges */}
+      {profile && (profile.leetcode_username || profile.codechef_username) && (
+        <div className="profile-badges">
+          {profile.leetcode_username && (
+            <span className="platform-badge platform-badge--lc">
+              <Code2 size={14} />
+              LeetCode: {profile.leetcode_username}
+            </span>
+          )}
+          {profile.codechef_username && (
+            <span className="platform-badge platform-badge--cc">
+              <TrendingUp size={14} />
+              CodeChef: {profile.codechef_username}
+            </span>
+          )}
+        </div>
+      )}
 
-        {/* Analyze Section */}
+      {/* Main grid */}
+      <div className="dashboard-grid">
+
+        {/* ─── Analyze Section ─── */}
         <div className="dashboard-section">
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Analyze LeetCode</h2>
-          <div className="search-card glass" style={{ marginBottom: '2rem' }}>
+          <h2><Search size={16} /> Analyze LeetCode</h2>
+          <div className="search-card glass">
             <form onSubmit={handleAnalyze} className="search-form">
               <div className="search-input-wrapper">
                 <Code2 className="search-icon-left" />
@@ -76,14 +106,19 @@ const Dashboard = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="search-input"
+                  id="analyze-username"
                 />
               </div>
-              <button type="submit" className="btn-primary search-btn" disabled={isAnalyzing || !username.trim()}>
+              <button
+                type="submit"
+                className="btn-primary search-btn"
+                disabled={isAnalyzing || !username.trim()}
+              >
                 {isAnalyzing ? (
-                  <Activity className="icon-spin" size={20} />
+                  <Activity className="icon-spin" size={18} />
                 ) : (
                   <>
-                    <Search size={20} />
+                    <Search size={18} />
                     <span>Analyze</span>
                   </>
                 )}
@@ -93,13 +128,13 @@ const Dashboard = () => {
           </div>
 
           {analysis && (
-            <div className="results-grid" style={{ gridTemplateColumns: '1fr' }}>
-              <div className="result-card glass fade-in">
+            <div className="results-grid stagger" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="result-card glass fade-in-up">
                 <div className="card-header">
                   <Trophy className="card-icon text-gold" />
                   <h3>Score & Ranking</h3>
                 </div>
-                <div className="card-body" style={{ fontSize: '0.95rem' }}>
+                <div className="card-body">
                   <div className="stat-row">
                     <span className="stat-label">Rating</span>
                     <span className="stat-value">{analysis.rating || 'N/A'}</span>
@@ -117,12 +152,12 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="result-card glass fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="result-card glass fade-in-up">
                 <div className="card-header">
                   <Flame className="card-icon text-orange" />
                   <h3>Activity Status</h3>
                 </div>
-                <div className="card-body" style={{ fontSize: '0.95rem' }}>
+                <div className="card-body">
                   <div className="stat-row">
                     <span className="stat-label">Inactive Today</span>
                     <span className="stat-value">
@@ -145,17 +180,18 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Schedule Email Section */}
+        {/* ─── Schedule Email Section ─── */}
         <div className="dashboard-section">
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Schedule Reminder</h2>
-          <div className="auth-card glass" style={{ width: '100%', padding: '1.5rem' }}>
+          <h2><Calendar size={16} /> Schedule Reminder</h2>
+          <div className="schedule-card glass">
             <form onSubmit={handleScheduleEmail} className="auth-form" style={{ gap: '1rem' }}>
               <div className="form-group">
-                <label>Subject</label>
+                <label htmlFor="email-subject">Subject</label>
                 <div className="input-with-icon">
                   <Mail className="input-icon" />
                   <input
                     type="text"
+                    id="email-subject"
                     placeholder="Reminder Subject"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
@@ -163,63 +199,43 @@ const Dashboard = () => {
                   />
                 </div>
               </div>
+
               <div className="form-group">
-                <label>Message Content</label>
+                <label htmlFor="email-body">Message Content</label>
                 <textarea
-                  placeholder="Message body here..."
+                  id="email-body"
+                  placeholder="Write your reminder message..."
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    minHeight: '100px',
-                    resize: 'vertical'
-                  }}
                   required
                 />
               </div>
+
               <div className="form-group">
-                <label>Delay</label>
+                <label htmlFor="email-delay">Delay</label>
                 <select
+                  id="email-delay"
                   value={reminderDelay}
                   onChange={(e) => setReminderDelay(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    color: 'var(--text-primary)',
-                    outline: 'none'
-                  }}
                 >
-                  <option value="1h" style={{ background: '#1e293b' }}>1 Hour</option>
-                  <option value="2h" style={{ background: '#1e293b' }}>2 Hours</option>
-                  <option value="24h" style={{ background: '#1e293b' }}>24 Hours</option>
+                  <option value="1h">1 Hour</option>
+                  <option value="2h">2 Hours</option>
+                  <option value="24h">24 Hours</option>
                 </select>
               </div>
 
-              <button type="submit" className="btn-primary" disabled={isScheduling} style={{ marginTop: '0.5rem' }}>
-                <Send size={18} />
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isScheduling}
+                style={{ marginTop: '0.25rem' }}
+              >
+                <Send size={16} />
                 <span>{isScheduling ? 'Scheduling...' : 'Schedule Email'}</span>
               </button>
 
               {scheduleStatus && (
-                <div style={{
-                  marginTop: '1rem',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  textAlign: 'center',
-                  fontSize: '0.9rem',
-                  background: scheduleStatus.includes('Error') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                  color: scheduleStatus.includes('Error') ? 'var(--error-color)' : 'var(--success-color)'
-                }}>
+                <div className={`status-message ${scheduleStatus.includes('Error') ? 'status-message--error' : 'status-message--success'}`}>
                   {scheduleStatus}
                 </div>
               )}

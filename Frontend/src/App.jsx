@@ -4,7 +4,8 @@ import Navbar from './components/Navbar';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import ProfileSetup from './pages/ProfileSetup';
+import OnboardingModal from './components/OnboardingModal';
+import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
 
 // Protected Route Component
@@ -14,51 +15,67 @@ const ProtectedRoute = ({ element, isAuthenticated }) => {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if token exists in localStorage on initial load
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Here you might optimally check token validity with a ping to the server
+    // Check auth state on initial load
+    if (isLoggedIn()) {
       setIsAuthenticated(true);
+      setNeedsOnboarding(!hasCompletedOnboarding());
     }
     setIsLoading(false);
   }, []);
 
+  const handleOnboardingComplete = (profileData) => {
+    if (profileData) {
+      saveProfileLocally(profileData);
+    }
+    setNeedsOnboarding(false);
+  };
+
   if (isLoading) {
-    return <div className="loading-screen" style={{ color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-dark)' }}>Loading...</div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading DevFlow...</span>
+      </div>
+    );
   }
 
   return (
     <Router>
       <div className="app">
-        <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+        <Navbar
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+        />
         <main className="main-content">
           <Routes>
             <Route
               path="/"
-              element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
+              element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
             />
             <Route
               path="/signup"
-              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />}
+              element={
+                isAuthenticated ?
+                  <Navigate to="/dashboard" replace /> :
+                  <Signup
+                    setIsAuthenticated={setIsAuthenticated}
+                    setNeedsOnboarding={setNeedsOnboarding}
+                  />
+              }
             />
             <Route
               path="/login"
               element={
                 isAuthenticated ?
                   <Navigate to="/dashboard" replace /> :
-                  <Login setIsAuthenticated={setIsAuthenticated} />
-              }
-            />
-            <Route
-              path="/setup-profile"
-              element={
-                <ProtectedRoute
-                  element={<ProfileSetup />}
-                  isAuthenticated={isAuthenticated}
-                />
+                  <Login
+                    setIsAuthenticated={setIsAuthenticated}
+                    setNeedsOnboarding={setNeedsOnboarding}
+                  />
               }
             />
             <Route
@@ -70,8 +87,15 @@ function App() {
                 />
               }
             />
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+
+        {/* Onboarding modal overlay (renders on top of dashboard) */}
+        {isAuthenticated && needsOnboarding && (
+          <OnboardingModal onComplete={handleOnboardingComplete} />
+        )}
       </div>
     </Router>
   );

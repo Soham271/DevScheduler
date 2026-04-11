@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
 import { api } from '../services/api';
+import { processAuthResponse } from '../utils/auth';
 import { LogIn, Mail, Lock } from 'lucide-react';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = ({ setIsAuthenticated, setNeedsOnboarding }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,32 +16,18 @@ const Login = ({ setIsAuthenticated }) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if we have a state message from Signup
     if (location.state && location.state.message) {
       setInfoMsg(location.state.message);
-      // Clear the state so it doesn't persist on reload
       window.history.replaceState({}, document.title);
     }
   }, [location]);
 
   const handleAuthSuccess = (response) => {
-    // Store JWT token to localStorage
-    if (response && response.token) {
-      localStorage.setItem('token', response.token);
-    } else if (response.data && response.data.token) {
-      localStorage.setItem('token', response.data.token);
-    }
+    const { needsOnboarding } = processAuthResponse(response);
 
     setIsAuthenticated(true);
-
-    // Profile completion logic: Let's assume if it's their first time, backend sets needsProfileSetup: true
-    // Or we just check locally if we haven't seen them before. 
-    // We will conditionally route them to /setup-profile if a flag is passed, else /dashboard.
-    if (response.needsProfileSetup || localStorage.getItem('isNewUser') === 'true') {
-      navigate('/setup-profile');
-    } else {
-      navigate('/dashboard');
-    }
+    setNeedsOnboarding(needsOnboarding);
+    navigate('/dashboard');
   };
 
   const handleLogin = async (e) => {
@@ -59,23 +46,8 @@ const Login = ({ setIsAuthenticated }) => {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      // Send Google JWT to backend
-      const response = await api.post('/auth/google', { token: credentialResponse.credential });
-      handleAuthSuccess(response);
-    } catch (err) {
-      setError(err.message || 'Google Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleFailure = () => {
-    setError('Google Login failed completely. Please try again.');
+  const handleGoogleError = (err) => {
+    setError(err?.message || 'Google sign-in failed. Please try again.');
   };
 
   return (
@@ -89,46 +61,38 @@ const Login = ({ setIsAuthenticated }) => {
           <p>Sign in to your DevFlow account</p>
         </div>
 
-        {infoMsg && <div className="auth-success" style={{
-          background: 'rgba(59, 130, 246, 0.1)',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          color: '#60a5fa',
-          padding: '0.75rem',
-          borderRadius: '8px',
-          fontSize: '0.9rem',
-          marginBottom: '1.5rem',
-          textAlign: 'center'
-        }}>{infoMsg}</div>}
-
+        {infoMsg && <div className="auth-info">{infoMsg}</div>}
         {error && <div className="auth-error">{error}</div>}
 
         <form onSubmit={handleLogin} className="auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="login-email">Email Address</label>
             <div className="input-with-icon">
               <Mail className="input-icon" />
               <input
                 type="email"
-                id="email"
+                id="login-email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="login-password">Password</label>
             <div className="input-with-icon">
               <Lock className="input-icon" />
               <input
                 type="password"
-                id="password"
+                id="login-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
             </div>
           </div>
@@ -138,21 +102,15 @@ const Login = ({ setIsAuthenticated }) => {
           </button>
         </form>
 
-        <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', textAlign: 'center', color: 'var(--text-secondary)' }}>
-          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
-          <span style={{ padding: '0 10px', fontSize: '0.85rem' }}>OR</span>
-          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
+        <div className="auth-divider">
+          <span>or continue with</span>
         </div>
 
-        <div className="google-auth-container" style={{ display: 'flex', justifyContent: 'center' }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleFailure}
-            theme="filled_black"
-            text="continue_with"
-            shape="rectangular"
-          />
-        </div>
+        <GoogleAuthButton 
+          onSuccess={handleAuthSuccess}
+          onError={handleGoogleError}
+          text="signin_with"
+        />
 
         <div className="auth-footer">
           <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
