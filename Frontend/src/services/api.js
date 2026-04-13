@@ -54,4 +54,33 @@ export const api = {
   saveProfile: async (data) => {
     return request('POST', '/user/profile', data, true);
   },
+
+  analyzeUser: async (platform, username) => {
+    return request('POST', `/analyze/${encodeURIComponent(platform)}/${encodeURIComponent(username)}`, null, true);
+  },
+
+  registerUser: async (platform, username, email) => {
+    return request(
+      'POST',
+      `/register/${encodeURIComponent(platform)}/${encodeURIComponent(username)}`,
+      { email },
+      true
+    );
+  },
+
+  scheduleEmail: async (data) => {
+    return request('POST', '/schedule-email', data, true);
+  },
+
+  sendEmail: async (data) => {
+    return request('POST', '/send-email', data, true);
+  },
+
+  getRegisteredUsers: async () => {
+    return request('GET', '/users', null, false);
+  },
+
+  getContests: async (platform = 'all') => {
+    return request('GET', `/contests/${encodeURIComponent(platform)}`, null, false);
+  },
 };

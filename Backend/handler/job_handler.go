@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"devflow-scheduler/config"
 	"devflow-scheduler/events"
@@ -87,6 +88,13 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 
 		// Step 2: For LeetCode — check inactivity FIRST
 		if platform == "leetcode" && profile.IsInactiveToday {
+			email := c.GetString("user_email")
+			if email != "" {
+				subject := "⚠️ LeetCode Inactivity Reminder!"
+				body := fmt.Sprintf("Hi %s,\n\nYou haven't solved any problems on LeetCode today. Please solve at least one problem to keep your streak going!\n\nHappy Coding,\nDevFlow Scheduler", username)
+				events.HandleDelayedEmail(rdb, email, subject, body, 5*time.Minute)
+			}
+
 			// User has 0 submissions today → return warning-only response
 			c.JSON(http.StatusOK, gin.H{
 				"message":           "⚠️ You are inactive today!",
@@ -94,8 +102,7 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 				"submissions_today": false,
 				"username":          username,
 				"platform":          platform,
-				"total_solved":      profile.TotalSolved,
-				"rating":            profile.Rating,
+				"profile_hidden":    true,
 				"warning": fmt.Sprintf(
 					"%s, you haven't solved any problem on LeetCode today! Please solve at least one problem to keep your streak going.",
 					username,
