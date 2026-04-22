@@ -8,7 +8,6 @@ import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
 
-// Protected Route Component
 const ProtectedRoute = ({ element, isAuthenticated }) => {
   return isAuthenticated ? element : <Navigate to="/login" replace />;
 };
@@ -19,7 +18,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check auth state on initial load
     if (isLoggedIn()) {
       setIsAuthenticated(true);
       setNeedsOnboarding(!hasCompletedOnboarding());
@@ -28,74 +26,33 @@ function App() {
   }, []);
 
   const handleOnboardingComplete = (profileData) => {
-    if (profileData) {
-      saveProfileLocally(profileData);
-    }
+    if (profileData) saveProfileLocally(profileData);
     setNeedsOnboarding(false);
   };
 
   if (isLoading) {
     return (
-      <div className="loading-screen">
-        <div className="loading-spinner" />
-        <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading DevFlow...</span>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <div className="w-9 h-9 border-3 border-gray-200 border-t-brand-500 rounded-full animate-spin" />
+        <span className="text-sm text-gray-500">Loading DevFlow...</span>
       </div>
     );
   }
 
   return (
     <Router>
-      <div className="app">
-        <Navbar
-          isAuthenticated={isAuthenticated}
-          setIsAuthenticated={setIsAuthenticated}
-        />
-        <main className="main-content">
+      <div className="min-h-screen">
+        <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+        <main className="px-4 sm:px-6 lg:px-8 py-6 flex justify-center">
           <Routes>
-            <Route
-              path="/"
-              element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
-            />
-            <Route
-              path="/signup"
-              element={
-                isAuthenticated ?
-                  <Navigate to="/dashboard" replace /> :
-                  <Signup
-                    setIsAuthenticated={setIsAuthenticated}
-                    setNeedsOnboarding={setNeedsOnboarding}
-                  />
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                isAuthenticated ?
-                  <Navigate to="/dashboard" replace /> :
-                  <Login
-                    setIsAuthenticated={setIsAuthenticated}
-                    setNeedsOnboarding={setNeedsOnboarding}
-                  />
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute
-                  element={<Dashboard />}
-                  isAuthenticated={isAuthenticated}
-                />
-              }
-            />
-            {/* Catch-all redirect */}
+            <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
+            <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
+            <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-
-        {/* Onboarding modal overlay (renders on top of dashboard) */}
-        {isAuthenticated && needsOnboarding && (
-          <OnboardingModal onComplete={handleOnboardingComplete} />
-        )}
+        {isAuthenticated && needsOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
       </div>
     </Router>
   );

@@ -83,4 +83,8 @@ export const api = {
   getContests: async (platform = 'all') => {
     return request('GET', `/contests/${encodeURIComponent(platform)}`, null, false);
   },
+
+  checkHealth: async () => {
+    return request('GET', '/health', null, false);
+  },
 };
