@@ -58,7 +58,12 @@ const Profile = () => {
   const initial = email ? email.charAt(0).toUpperCase() : 'D';
 
   const handleChange = (field, value) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
+    let cleanValue = value.trim();
+    // Auto-extract username if a full URL is pasted (e.g. https://github.com/Soham271 -> Soham271)
+    if (cleanValue.includes('/') && (field.includes('username') || field.includes('handle'))) {
+      cleanValue = cleanValue.split('/').filter(Boolean).pop();
+    }
+    setProfile((prev) => ({ ...prev, [field]: cleanValue }));
     setStatus(null);
   };
 
