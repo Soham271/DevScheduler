@@ -3,7 +3,23 @@ import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { getLocalProfile, getUserEmail, saveProfileLocally } from '../utils/auth';
 import { AuthInput } from '../components/AuthFormStyles';
-import { Activity, CalendarDays, Eye, Save, UserCircle2 } from 'lucide-react';
+import { Activity, CalendarDays, Eye, Save, UserCircle2, Code2, GitBranch } from 'lucide-react';
+
+const GithubIcon = ({ size = 18, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+  </svg>
+);
 
 const Profile = () => {
   const email = getUserEmail();
@@ -15,6 +31,7 @@ const Profile = () => {
     codechef_username: stored?.codechef_username || '',
     codeforces_username: stored?.codeforces_username || '',
     gfg_username: stored?.gfg_username || '',
+    github_username: stored?.github_username || '',
   });
   const [stats, setStats] = useState({ contests: 0, watched: 0, loading: true });
 
@@ -54,6 +71,7 @@ const Profile = () => {
       codechef_username: profile.codechef_username.trim(),
       codeforces_username: profile.codeforces_username.trim(),
       gfg_username: profile.gfg_username.trim(),
+      github_username: profile.github_username.trim(),
     };
     try {
       await api.saveProfile(payload);
@@ -113,13 +131,19 @@ const Profile = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">CodeChef</label>
-            <AuthInput
-              type="text"
-              value={profile.codechef_username}
-              onChange={(e) => handleChange('codechef_username', e.target.value)}
-              placeholder="e.g. tourist"
-            />
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">CodeChef Username</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Code2 size={18} className="text-gray-400 group-focus-within:text-brand-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                value={profile.codechef_username}
+                onChange={(e) => handleChange('codechef_username', e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm font-medium"
+                placeholder="e.g. tourist"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Codeforces</label>
@@ -129,6 +153,21 @@ const Profile = () => {
               onChange={(e) => handleChange('codeforces_username', e.target.value)}
               placeholder="e.g. benq"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">GitHub Username</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <GithubIcon size={18} className="text-gray-400 group-focus-within:text-brand-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                value={profile.github_username}
+                onChange={(e) => handleChange('github_username', e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm font-medium"
+                placeholder="e.g. torvalds"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">GeeksForGeeks</label>

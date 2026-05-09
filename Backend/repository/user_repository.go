@@ -51,7 +51,7 @@ func GetUserByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
-func UpdateUserProfiles(email, leetcode, codechef string) error {
+func UpdateUserProfiles(email, leetcode, codechef, github string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -59,8 +59,26 @@ func UpdateUserProfiles(email, leetcode, codechef string) error {
 		"$set": bson.M{
 			"leetcode_username": leetcode,
 			"codechef_username": codechef,
+			"github_username":   github,
 		},
 	}
 	_, err := config.UserCollection.UpdateOne(ctx, bson.M{"email": email}, update)
 	return err
+}
+
+func GetAllUsers() ([]model.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var users []model.User
+	cursor, err := config.UserCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
 }

@@ -37,3 +37,8 @@ body {
 .animate-scale-in { animation: scaleIn .35s ease forwards }
 .icon-spin { animation: spin 1s linear infinite }
 .no-underline { text-decoration: none }
+
+/* ── Activity Feed Animations ───────────────── */
+@keyframes slideInDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:translateY(0) } }
+@keyframes healthPulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+.animate-slide-in-down { animation: slideInDown .35s ease forwards }

@@ -51,5 +51,6 @@ type User struct {
 	CodechefUsername   string    `json:"codechef_username" bson:"codechef_username"`
 	CodeforcesUsername string    `json:"codeforces_username" bson:"codeforces_username"`
 	GfgUsername        string    `json:"gfg_username" bson:"gfg_username"`
+	GithubUsername     string    `json:"github_username" bson:"github_username"`
 	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }

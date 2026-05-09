@@ -56,5 +56,11 @@ func SetupRouter(rdb *redis.Client) *gin.Engine {
 	r.GET("/users", handler.ListUsers(rdb))
 	r.GET("/contests/:platform", handler.GetContests(rdb))
 
+	// ─── Activity Feed (public read, protected write) ─────
+	r.GET("/activities", handler.GetActivities(rdb))
+	r.GET("/activities/stream", handler.StreamActivities())
+	protected.POST("/activities/:id/read", handler.MarkActivityRead(rdb))
+	protected.POST("/activities/clear", handler.ClearActivities(rdb))
+
 	return r
 }

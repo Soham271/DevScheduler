@@ -6,6 +6,7 @@ import StatsCard from '../components/StatsCard';
 import TierBadge from '../components/TierBadge';
 import HealthIndicator from '../components/HealthIndicator';
 import ActionButton from '../components/ActionButton';
+import ActivityFeed from '../components/ActivityFeed';
 import { Activity, AlertTriangle, BarChart3, Calendar, Code2, Eye, Flame, RefreshCw, Search, Sparkles, Terminal, Trophy, UserPlus, Zap } from 'lucide-react';
 
 const pCfg = {
@@ -190,6 +191,8 @@ const Dashboard = () => {
           </div>
         )}
       </section>
+
+      <ActivityFeed />
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link to="/contests" className="no-underline p-5 rounded-2xl border border-gray-200 bg-white hover:shadow-md transition">

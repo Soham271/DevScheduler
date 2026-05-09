@@ -2,6 +2,7 @@ package workers
 
 import (
 	"devflow-scheduler/model"
+	"devflow-scheduler/services"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -68,4 +69,24 @@ func handleUserAnalysis(job model.Job) {
 	}
 
 	fmt.Printf("╚══════════════════════════════════════════════════════════════╝\n\n")
+
+	// Emit activity to the live feed
+	if WorkerRDB != nil {
+		priority := model.PriorityInfo
+		if payload.Inactive {
+			priority = model.PriorityWarning
+		}
+		services.EmitProductivityActivity(WorkerRDB, priority,
+			fmt.Sprintf("Analysis Complete — %s@%s", payload.Username, payload.Platform),
+			fmt.Sprintf("%d problems solved, %s tier, rating %d", payload.TotalSolved, strings.ToUpper(payload.PerfLevel), payload.Rating),
+			map[string]string{
+				"username":    payload.Username,
+				"platform":    payload.Platform,
+				"total_solved": fmt.Sprintf("%d", payload.TotalSolved),
+				"rating":      fmt.Sprintf("%d", payload.Rating),
+				"performance": payload.PerfLevel,
+				"inactive":    fmt.Sprintf("%v", payload.Inactive),
+			},
+		)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"devflow-scheduler/repository"
 	"devflow-scheduler/services"
 
 	"github.com/redis/go-redis/v9"
@@ -107,6 +108,73 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 	}()
 
 	// ═════════════════════════════════════════════════════════════
+	//  Monitor: GitHub Activity Tracker
+	// ═════════════════════════════════════════════════════════════
+	go func() {
+		// Run every 10 minutes to respect GitHub API rate limits
+		ticker := time.NewTicker(10 * time.Minute)
+		log.Println("🐙 [Monitor] Started GitHub Dev Pulse monitor (every 10 min)")
+
+		for range ticker.C {
+			users, err := repository.GetAllUsers()
+			if err != nil || len(users) == 0 {
+				continue
+			}
+
+			for _, u := range users {
+				if u.GithubUsername == "" {
+					continue
+				}
+
+				events, err := services.FetchRecentGithubActivity(rdb, u.GithubUsername)
+				if err != nil {
+					log.Printf("⚠️ [GitHub Monitor] Failed to fetch for %s: %v", u.GithubUsername, err)
+					continue
+				}
+
+				if len(events) == 0 {
+					continue
+				}
+
+				var pushCount, prCount int
+				var lastRepo string
+
+				for _, event := range events {
+					if event.Type == "PushEvent" {
+						pushCount++
+						lastRepo = event.Repo.Name
+					} else if event.Type == "PullRequestEvent" {
+						prCount++
+						lastRepo = event.Repo.Name
+					}
+				}
+
+				title := fmt.Sprintf("Code Pushed — %s", u.Name)
+				message := ""
+
+				if pushCount > 0 && prCount > 0 {
+					message = fmt.Sprintf("Pushed code %d time(s) and opened %d PR(s) on GitHub, mostly in %s. Great hustle!", pushCount, prCount, lastRepo)
+				} else if pushCount > 0 {
+					message = fmt.Sprintf("Pushed code %d time(s) to %s. Keeping the streak alive!", pushCount, lastRepo)
+				} else if prCount > 0 {
+					message = fmt.Sprintf("Opened %d Pull Request(s) on %s. Collaboration in progress!", prCount, lastRepo)
+				}
+
+				if message != "" {
+					services.EmitGithubActivity(rdb, "info", title, message, map[string]string{
+						"username": u.Name,
+						"github":   u.GithubUsername,
+						"repo":     lastRepo,
+						"pushes":   fmt.Sprintf("%d", pushCount),
+						"prs":      fmt.Sprintf("%d", prCount),
+					})
+					log.Printf("✅ [GitHub Monitor] Emitted activity for %s", u.GithubUsername)
+				}
+			}
+		}
+	}()
+
+	// ═════════════════════════════════════════════════════════════
 	//  Monitor 3: LeetCode Inactivity Reminder Monitor
 	//  Checks every minute if it's past 8 PM IST and users are inactive.
 	//  Uses recentSubmissionList (today's submissions) as the source of truth.
@@ -167,6 +235,14 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					log.Printf("✅ [Inactivity Monitor] %s@%s has %d submission(s) today — clearing reminders",
 						u.Username, u.Platform, submissionsToday)
 					services.ResetInactivityCount(rdb, u.Platform, u.Username)
+
+					// Emit positive activity to the live feed
+					services.EmitProductivityActivity(rdb, "success",
+						fmt.Sprintf("Streak Maintained — %s@%s", u.Username, u.Platform),
+						fmt.Sprintf("%s solved %d problem(s) today on %s 🔥", u.Username, submissionsToday, u.Platform),
+						map[string]string{"username": u.Username, "platform": u.Platform, "submissions": fmt.Sprintf("%d", submissionsToday)},
+					)
+
 					continue
 				}
 

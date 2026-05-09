@@ -85,10 +85,10 @@ func BuildContestReminderBody(contestName, platform, startTime, timeRemaining st
 	if minutesBefore <= 1 {
 		urgency = "🚨"
 		action = "STARTING NOW — Open your browser and join immediately!"
-	} else if minutesBefore <= 5 {
+	} else if minutesBefore <= 15 {
 		urgency = "⏰"
 		action = "Almost time! Open the contest page and get ready."
-	} else if minutesBefore <= 15 {
+	} else if minutesBefore <= 45 {
 		urgency = "⚡"
 		action = "Last chance to prepare — review your templates and setup."
 	}

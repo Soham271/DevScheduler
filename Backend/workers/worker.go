@@ -12,6 +12,8 @@ import (
 	"log"
 
 	"devflow-scheduler/model"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // define the job type
@@ -33,8 +35,13 @@ const (
 // It can hold up to 100 jobs at a time waiting for a worker.
 var JobQueue = make(chan model.Job, 100)
 
+// WorkerRDB is the Redis client used by worker handlers for activity emission.
+var WorkerRDB *redis.Client
+
 // StartPool creates the worker pool with the specified number of workers.
-func StartPool(numberOfWorkers int) {
+// It also stores the Redis client reference for activity feed emission.
+func StartPool(numberOfWorkers int, rdb *redis.Client) {
+	WorkerRDB = rdb
 	for i := 1; i <= numberOfWorkers; i++ {
 		go worker(i)
 	}

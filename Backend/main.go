@@ -6,6 +6,7 @@ import (
 	"devflow-scheduler/repository"
 	"devflow-scheduler/router"
 	"devflow-scheduler/scheduler"
+	"devflow-scheduler/services"
 	"devflow-scheduler/workers"
 	"fmt"
 	"log"
@@ -35,8 +36,12 @@ func main() {
 	// Create indexes (like unique email)
 	repository.EnsureUserIndexes()
 
+	// Initialize the SSE hub for live activity feed broadcasting
+	services.ActivityHub = services.NewSSEHub()
+	log.Println("📡 SSE Activity Hub initialized")
+
 	// start with the 5 workers in the Background
-	workers.StartPool(5)
+	workers.StartPool(5, rdb)
 
 	// close connections when the main function exit
 	defer rdb.Close()

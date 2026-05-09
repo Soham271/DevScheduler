@@ -10,6 +10,7 @@ import (
 type UpdateProfileRequest struct {
 	LeetcodeUsername string `json:"leetcode_username"`
 	CodechefUsername string `json:"codechef_username"`
+	GithubUsername   string `json:"github_username"`
 }
 
 func UpdateUserProfile() gin.HandlerFunc {
@@ -26,7 +27,7 @@ func UpdateUserProfile() gin.HandlerFunc {
 			return
 		}
 
-		err := repository.UpdateUserProfiles(email.(string), req.LeetcodeUsername, req.CodechefUsername)
+		err := repository.UpdateUserProfiles(email.(string), req.LeetcodeUsername, req.CodechefUsername, req.GithubUsername)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile", "details": err.Error()})
 			return

@@ -4,6 +4,7 @@ import (
 	"devflow-scheduler/model"
 	"devflow-scheduler/services"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -29,6 +30,15 @@ func handleDelayedEmail(job model.Job) {
 	}
 
 	log.Printf("✅ [Delayed Email] Successfully sent to %s (job %s)", payload.To, job.ID)
+
+	// Emit activity to the live feed
+	if WorkerRDB != nil {
+		services.EmitEmailActivity(WorkerRDB,
+			"Scheduled Email Sent",
+			fmt.Sprintf("Email sent to %s — \"%s\"", payload.To, payload.Subject),
+			map[string]string{"to": payload.To, "subject": payload.Subject},
+		)
+	}
 }
 
 // handleInactivityReminder processes a LeetCode inactivity reminder job.
@@ -53,6 +63,15 @@ func handleInactivityReminder(job model.Job) {
 	}
 
 	log.Printf("✅ [Inactivity Reminder] Reminder #%d sent to %s (job %s)", payload.ReminderNum, payload.Email, job.ID)
+
+	// Emit activity to the live feed
+	if WorkerRDB != nil {
+		services.EmitReminderActivity(WorkerRDB, model.PriorityWarning,
+			fmt.Sprintf("Inactivity Reminder #%d Sent", payload.ReminderNum),
+			fmt.Sprintf("%s@%s hasn't solved anything today — reminder sent to %s", payload.Username, payload.Platform, payload.Email),
+			map[string]string{"username": payload.Username, "platform": payload.Platform, "reminder_num": fmt.Sprintf("%d", payload.ReminderNum)},
+		)
+	}
 }
 
 // handleContestReminder processes a contest countdown reminder job.
@@ -78,4 +97,13 @@ func handleContestReminder(job model.Job) {
 
 	log.Printf("✅ [Contest Reminder] %d-min reminder sent for %s to %s (job %s)",
 		payload.MinutesBefore, payload.ContestName, payload.Email, job.ID)
+
+	// Emit activity to the live feed
+	if WorkerRDB != nil {
+		services.EmitContestActivity(WorkerRDB,
+			fmt.Sprintf("Contest in %d minutes!", payload.MinutesBefore),
+			fmt.Sprintf("%s on %s starts in %s", payload.ContestName, payload.Platform, payload.TimeRemaining),
+			map[string]string{"contest": payload.ContestName, "platform": payload.Platform, "minutes_before": fmt.Sprintf("%d", payload.MinutesBefore)},
+		)
+	}
 }

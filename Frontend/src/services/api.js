@@ -87,4 +87,17 @@ export const api = {
   checkHealth: async () => {
     return request('GET', '/health', null, false);
   },
+
+  // ─── Activity Feed ────────────────────────
+  getActivities: async (offset = 0, limit = 20) => {
+    return request('GET', `/activities?offset=${offset}&limit=${limit}`, null, false);
+  },
+
+  markActivityRead: async (id) => {
+    return request('POST', `/activities/${encodeURIComponent(id)}/read`, null, true);
+  },
+
+  clearActivities: async () => {
+    return request('POST', '/activities/clear', null, true);
+  },
 };

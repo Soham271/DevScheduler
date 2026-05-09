@@ -10,6 +10,7 @@ const OnboardingModal = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const [leetcode, setLeetcode] = useState('');
   const [codechef, setCodechef] = useState('');
+  const [github, setGithub] = useState('');
   const [lcStatus, setLcStatus] = useState(null);
   const [ccStatus, setCcStatus] = useState(null);
   const [error, setError] = useState('');
@@ -29,11 +30,15 @@ const OnboardingModal = ({ onComplete }) => {
 
   const handleSubmit = async () => {
     setError('');
-    if (!leetcode.trim() && !codechef.trim()) { setError('Please enter at least one platform username.'); return; }
+    if (!leetcode.trim() && !codechef.trim() && !github.trim()) { setError('Please enter at least one platform username.'); return; }
     if (leetcode.trim() && lcStatus !== 'valid') { setError('Please verify your LeetCode username first.'); return; }
     setIsSaving(true);
     try {
-      const profileData = { leetcode_username: leetcode.trim(), codechef_username: codechef.trim() };
+      const profileData = { 
+        leetcode_username: leetcode.trim(), 
+        codechef_username: codechef.trim(),
+        github_username: github.trim()
+      };
       await api.saveProfile(profileData);
       markOnboardingDone();
       saveProfileLocally(profileData);
@@ -118,6 +123,17 @@ const OnboardingModal = ({ onComplete }) => {
               <ActionButton onClick={handleSubmit} disabled={isSaving} className="flex-[2] [&_button]:w-full [&_button]:justify-center [&_button]:py-3">
                 {isSaving ? <><Loader2 size={16} className="icon-spin" /> Saving...</> : 'Save & Continue'}
               </ActionButton>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">GitHub Username (Optional)</label>
+              <AuthInput
+                type="text"
+                placeholder="e.g. torvalds"
+                value={github}
+                onChange={(e) => setGithub(e.target.value)}
+              />
+              <p className="mt-1.5 text-xs text-gray-500">Used for real-time dev pulse tracking.</p>
             </div>
           </div>
         )}
