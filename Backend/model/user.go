@@ -6,7 +6,7 @@ import "time"
 // It contains all the data needed by the analysis engine.
 type UserProfile struct {
 	Username         string    `json:"username"`
-	Platform         string    `json:"platform"` // "leetcode" or "codechef"
+	Platform         string    `json:"platform"` // "leetcode", "codechef", "codeforces", or "gfg"
 	TotalSolved      int       `json:"total_solved"`
 	Rating           int       `json:"rating"`
 	SubmissionsToday bool      `json:"submissions_today"` // true if user submitted today
@@ -44,10 +44,12 @@ type ContestInfo struct {
 
 // User represents the registered user in the system stored in MongoDB.
 type User struct {
-	Email            string    `json:"email" bson:"email"`
-	Name             string    `json:"name" bson:"name"`
-	Password         string    `json:"-" bson:"password,omitempty"`
-	LeetcodeUsername string    `json:"leetcode_username" bson:"leetcode_username"`
-	CodechefUsername string    `json:"codechef_username" bson:"codechef_username"`
-	CreatedAt        time.Time `json:"created_at" bson:"created_at"`
+	Email              string    `json:"email" bson:"email"`
+	Name               string    `json:"name" bson:"name"`
+	Password           string    `json:"-" bson:"password,omitempty"`
+	LeetcodeUsername   string    `json:"leetcode_username" bson:"leetcode_username"`
+	CodechefUsername   string    `json:"codechef_username" bson:"codechef_username"`
+	CodeforcesUsername string    `json:"codeforces_username" bson:"codeforces_username"`
+	GfgUsername        string    `json:"gfg_username" bson:"gfg_username"`
+	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }

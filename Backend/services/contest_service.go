@@ -55,6 +55,26 @@ func GetUpcomingContests(platform string) []model.ContestInfo {
 		})
 	}
 
+	if platform == "" || platform == "codeforces" {
+		// Codeforces Div 2 — typically Saturday at 20:35 IST
+		nextSat := nextWeekdayAt(now, time.Saturday, 20, 35)
+		contests = append(contests, model.ContestInfo{
+			Name:          "Codeforces Div 2",
+			Platform:      "codeforces",
+			ScheduledAt:   nextSat.Format("Mon, 02 Jan 2006 03:04 PM IST"),
+			TimeRemaining: formatDuration(time.Until(nextSat)),
+		})
+
+		// Codeforces Educational Round — typically Thursday at 20:05 IST
+		nextThu := nextWeekdayAt(now, time.Thursday, 20, 5)
+		contests = append(contests, model.ContestInfo{
+			Name:          "CF Educational Round",
+			Platform:      "codeforces",
+			ScheduledAt:   nextThu.Format("Mon, 02 Jan 2006 03:04 PM IST"),
+			TimeRemaining: formatDuration(time.Until(nextThu)),
+		})
+	}
+
 	return contests
 }
 

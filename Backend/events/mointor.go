@@ -85,6 +85,24 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					}
 				}
 			}
+
+			// Codeforces Div 2 — Saturday
+			if now.Weekday() == time.Saturday {
+				for _, u := range users {
+					if u.Platform == "codeforces" {
+						HandleContestEvent(rdb, "Codeforces", "Div 2 Contest", u.Username+"@devflow", 1*time.Hour)
+					}
+				}
+			}
+
+			// Codeforces Educational — Thursday
+			if now.Weekday() == time.Thursday {
+				for _, u := range users {
+					if u.Platform == "codeforces" {
+						HandleContestEvent(rdb, "Codeforces", "Educational Round", u.Username+"@devflow", 1*time.Hour)
+					}
+				}
+			}
 		}
 	}()
 
@@ -113,8 +131,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			}
 
 			for _, u := range users {
-				// Currently only monitoring LeetCode users for inactivity
-				if u.Platform != "leetcode" {
+				// Currently monitoring LeetCode and Codeforces users for inactivity
+				if u.Platform != "leetcode" && u.Platform != "codeforces" {
 					continue
 				}
 
@@ -136,9 +154,13 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					continue
 				}
 
-				// Fetch today's submissions directly via GraphQL recentSubmissionList
-				// This is the single source of truth — no baseline comparison needed
-				submissionsToday := services.FetchLeetCodeTodaySubmissions(u.Username)
+				// Fetch today's submissions directly via the appropriate API
+				var submissionsToday int
+				if u.Platform == "leetcode" {
+					submissionsToday = services.FetchLeetCodeTodaySubmissions(u.Username)
+				} else if u.Platform == "codeforces" {
+					submissionsToday = services.FetchCFTodaySubmissionsPublic(u.Username)
+				}
 
 				if submissionsToday > 0 {
 					// User solved something today → active, clear reminders

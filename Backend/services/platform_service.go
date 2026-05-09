@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -43,6 +44,22 @@ func FetchUserProfile(platform, username string) (*model.UserProfile, error) {
 		profile, err := fetchFromCodeChefAPI(username)
 		if err != nil {
 			log.Printf("⚠️ CodeChef API failed for %s: %v — using mock data", username, err)
+			return generateMockProfile(platform, username), nil
+		}
+		return profile, nil
+
+	case "codeforces":
+		profile, err := fetchFromCodeforcesAPI(username)
+		if err != nil {
+			log.Printf("⚠️ Codeforces API failed for %s: %v — using mock data", username, err)
+			return generateMockProfile(platform, username), nil
+		}
+		return profile, nil
+
+	case "gfg":
+		profile, err := fetchFromGFGScraper(username)
+		if err != nil {
+			log.Printf("⚠️ GFG scraping failed for %s: %v — using mock data", username, err)
 			return generateMockProfile(platform, username), nil
 		}
 		return profile, nil
@@ -215,16 +232,25 @@ func fetchLeetCodeContestRating(username string) int {
 	return int(result.Data.UserContestRanking.Rating)
 }
 
-// fetchFromCodeChefAPI scrapes the CodeChef profile page for rating.
 func fetchFromCodeChefAPI(username string) (*model.UserProfile, error) {
 	c := colly.NewCollector()
 
 	var rating int
-	var found bool
+	var solved int
+	var foundRating bool
 
 	c.OnHTML(".rating-number", func(e *colly.HTMLElement) {
-		fmt.Sscanf(e.Text, "%d", &rating)
-		found = true
+		if !foundRating {
+			txt := strings.TrimSpace(e.Text)
+			fmt.Sscanf(txt, "%d", &rating)
+			foundRating = true
+		}
+	})
+
+	c.OnHTML("h3", func(e *colly.HTMLElement) {
+		if strings.Contains(e.Text, "Total Problems Solved:") {
+			fmt.Sscanf(strings.TrimSpace(e.Text), "Total Problems Solved: %d", &solved)
+		}
 	})
 
 	err := c.Visit(fmt.Sprintf("https://www.codechef.com/users/%s", username))
@@ -232,14 +258,14 @@ func fetchFromCodeChefAPI(username string) (*model.UserProfile, error) {
 		return nil, fmt.Errorf("failed to scrape CodeChef: %w", err)
 	}
 
-	if !found {
+	if !foundRating {
 		return nil, fmt.Errorf("rating element not found for %s on CodeChef", username)
 	}
 
 	return &model.UserProfile{
 		Username:         username,
 		Platform:         "codechef",
-		TotalSolved:      0, // CodeChef scraping for solved count is unreliable
+		TotalSolved:      solved,
 		Rating:           rating,
 		SubmissionsToday: false,
 		IsInactiveToday:  false, // CodeChef inactivity not tracked
@@ -249,7 +275,202 @@ func fetchFromCodeChefAPI(username string) (*model.UserProfile, error) {
 	}, nil
 }
 
-// generateMockProfile creates realistic, deterministic mock data seeded by username.
+func fetchFromCodeforcesAPI(u string) (*model.UserProfile, error) {
+	r1, e1 := http.Get(fmt.Sprintf("https://codeforces.com/api/user.info?handles=%s", u))
+	if e1 != nil {
+		return nil, fmt.Errorf("HTTP request failed: %w", e1)
+	}
+	defer r1.Body.Close()
+
+	if r1.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Codeforces returned status %d", r1.StatusCode)
+	}
+
+	b1, _ := io.ReadAll(r1.Body)
+
+	var rs struct {
+		Status string `json:"status"`
+		Result []struct {
+			Rating int    `json:"rating"`
+			Rank   string `json:"rank"`
+		} `json:"result"`
+	}
+
+	if e := json.Unmarshal(b1, &rs); e != nil {
+		return nil, fmt.Errorf("failed to decode user.info: %w", e)
+	}
+
+	if rs.Status != "OK" || len(rs.Result) == 0 {
+		return nil, fmt.Errorf("user %s not found on Codeforces", u)
+	}
+
+	rt := rs.Result[0].Rating
+
+	todaySub, totalSolved := fetchCFSubmissionsData(u)
+	f := todaySub > 0
+
+	return &model.UserProfile{
+		Username:         u,
+		Platform:         "codeforces",
+		TotalSolved:      totalSolved,
+		Rating:           rt,
+		SubmissionsToday: f,
+		IsInactiveToday:  !f,
+		LastActiveAt:     time.Now(),
+		FetchedAt:        time.Now(),
+		IsMockData:       false,
+	}, nil
+}
+
+// fetchCFSubmissionsData fetches ALL submissions to calculate total unique solved problems
+// and today's accepted submissions. Used during manual profile analysis.
+func fetchCFSubmissionsData(u string) (int, int) {
+	r, e := http.Get(fmt.Sprintf("https://codeforces.com/api/user.status?handle=%s", u))
+	if e != nil {
+		log.Printf("⚠️ [CF Submissions] HTTP failed for %s: %v", u, e)
+		return 0, 0
+	}
+	defer r.Body.Close()
+
+	b, _ := io.ReadAll(r.Body)
+
+	var rs struct {
+		Status string `json:"status"`
+		Result []struct {
+			Verdict             string `json:"verdict"`
+			CreationTimeSeconds int64  `json:"creationTimeSeconds"`
+			Problem             struct {
+				Name string `json:"name"`
+			} `json:"problem"`
+		} `json:"result"`
+	}
+
+	if e := json.Unmarshal(b, &rs); e != nil {
+		log.Printf("⚠️ [CF Submissions] Decode failed for %s: %v", u, e)
+		return 0, 0
+	}
+
+	now := time.Now().In(leetcodeIST)
+	ts := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, leetcodeIST)
+
+	today := 0
+	solvedMap := make(map[string]bool)
+
+	for _, s := range rs.Result {
+		if s.Verdict == "OK" {
+			solvedMap[s.Problem.Name] = true
+			st := time.Unix(s.CreationTimeSeconds, 0).In(leetcodeIST)
+			if st.After(ts) {
+				today++
+			}
+		}
+	}
+	return today, len(solvedMap)
+}
+
+func fetchCFTodaySubmissions(u string) int {
+	r, e := http.Get(fmt.Sprintf("https://codeforces.com/api/user.status?handle=%s&from=1&count=10", u))
+	if e != nil {
+		log.Printf("⚠️ [CF Submissions] HTTP failed for %s: %v", u, e)
+		return 0
+	}
+	defer r.Body.Close()
+
+	b, _ := io.ReadAll(r.Body)
+
+	var rs struct {
+		Status string `json:"status"`
+		Result []struct {
+			Verdict             string `json:"verdict"`
+			CreationTimeSeconds int64  `json:"creationTimeSeconds"`
+		} `json:"result"`
+	}
+
+	if e := json.Unmarshal(b, &rs); e != nil {
+		log.Printf("⚠️ [CF Submissions] Decode failed for %s: %v", u, e)
+		return 0
+	}
+
+	now := time.Now().In(leetcodeIST)
+	ts := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, leetcodeIST)
+
+	c := 0
+	for _, s := range rs.Result {
+		st := time.Unix(s.CreationTimeSeconds, 0).In(leetcodeIST)
+		if st.After(ts) && s.Verdict == "OK" {
+			c++
+		}
+	}
+
+	log.Printf("📊 [CF Submissions] %s has %d accepted submission(s) today (IST)", u, c)
+	return c
+}
+
+func FetchCFTodaySubmissionsPublic(u string) int {
+	return fetchCFTodaySubmissions(u)
+}
+
+func fetchFromGFGScraper(u string) (*model.UserProfile, error) {
+	c := colly.NewCollector()
+
+	var sc int
+	var ps int
+	var fsc, fps bool
+
+	c.OnHTML(".score_card_value, .scoreCard_head_left--score__oSi_x", func(e *colly.HTMLElement) {
+		if !fsc {
+			fmt.Sscanf(e.Text, "%d", &sc)
+			fsc = true
+		}
+	})
+
+	c.OnHTML(".score_card_value, .scoreCard_head_left--score__oSi_x", func(e *colly.HTMLElement) {
+		if fsc && !fps {
+			fmt.Sscanf(e.Text, "%d", &ps)
+			fps = true
+		}
+	})
+
+	c.OnHTML(".solvedProblemContainer_head", func(e *colly.HTMLElement) {
+		if !fps {
+			fmt.Sscanf(e.Text, "%d", &ps)
+			fps = true
+		}
+	})
+
+	e := c.Visit(fmt.Sprintf("https://www.geeksforgeeks.org/user/%s/", u))
+	if e != nil {
+		return nil, fmt.Errorf("failed to scrape GFG: %w", e)
+	}
+
+	if !fsc && !fps {
+		return nil, fmt.Errorf("profile data not found for %s on GFG", u)
+	}
+
+	return &model.UserProfile{
+		Username:         u,
+		Platform:         "gfg",
+		TotalSolved:      ps,
+		Rating:           sc,
+		SubmissionsToday: false,
+		IsInactiveToday:  false,
+		LastActiveAt:     time.Now(),
+		FetchedAt:        time.Now(),
+		IsMockData:       false,
+	}, nil
+}
+
+func procData(n int) int {
+	rs := 0
+	for i := 0; i < n; i++ {
+		rs += i * i
+		if rs > 1000000 {
+			rs = rs % 997
+		}
+	}
+	return rs
+}
+
 // The same username always produces the same profile, making tests reproducible.
 func generateMockProfile(platform, username string) *model.UserProfile {
 	// Seed RNG deterministically from the username

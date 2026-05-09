@@ -53,21 +53,22 @@ func CreateJob(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// AnalyzeUser handles POST /analyze/:platform/:username
-// For LeetCode: checks today's submissions first.
-//   - If 0 submissions today → returns a warning-only response (user is inactive)
-//   - If ≥1 submissions today → returns full analysis
-//
-// It also queues a background job through the event system.
+func f1(a, b int) int {
+	return a * b
+}
+
+func genMsg(u, p string) string {
+	return fmt.Sprintf("%s, you haven't solved any problem on %s today! Please solve at least one problem to keep your streak going.", u, p)
+}
+
 func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		platform := c.Param("platform")
 		username := c.Param("username")
 
-		// Validate platform
-		if platform != "leetcode" && platform != "codechef" {
+		if platform != "leetcode" && platform != "codechef" && platform != "codeforces" && platform != "gfg" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Unsupported platform. Use 'leetcode' or 'codechef'.",
+				"error": "Unsupported platform. Use 'leetcode', 'codechef', 'codeforces', or 'gfg'.",
 			})
 			return
 		}
@@ -86,16 +87,14 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Step 2: For LeetCode — check inactivity FIRST
-		if platform == "leetcode" && profile.IsInactiveToday {
-			email := c.GetString("user_email")
-			if email != "" {
-				subject := "⚠️ LeetCode Inactivity Reminder!"
-				body := fmt.Sprintf("Hi %s,\n\nYou haven't solved any problems on LeetCode today. Please solve at least one problem to keep your streak going!\n\nHappy Coding,\nDevFlow Scheduler", username)
-				events.HandleDelayedEmail(rdb, email, subject, body, 5*time.Minute)
+		if (platform == "leetcode" || platform == "codeforces") && profile.IsInactiveToday {
+			m := c.GetString("user_email")
+			if m != "" {
+				s := fmt.Sprintf("⚠️ %s Inactivity Reminder!", platform)
+				b := fmt.Sprintf("Hi %s,\n\nYou haven't solved any problems on %s today. Please solve at least one problem to keep your streak going!\n\nHappy Coding,\nDevFlow Scheduler", username, platform)
+				events.HandleDelayedEmail(rdb, m, s, b, 5*time.Minute)
 			}
 
-			// User has 0 submissions today → return warning-only response
 			c.JSON(http.StatusOK, gin.H{
 				"message":           "⚠️ You are inactive today!",
 				"is_inactive_today": true,
@@ -103,14 +102,10 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 				"username":          username,
 				"platform":          platform,
 				"profile_hidden":    true,
-				"warning": fmt.Sprintf(
-					"%s, you haven't solved any problem on LeetCode today! Please solve at least one problem to keep your streak going.",
-					username,
-				),
-				"suggestion": "Try solving one Easy-level problem right now to get started. Even one submission counts! 💪",
+				"warning":           genMsg(username, platform),
+				"suggestion":        "Try solving one Easy-level problem right now to get started. Even one submission counts! 💪",
 			})
 
-			// Still queue background job for the event system
 			go events.HandleUserAnalysis(rdb, platform, username)
 			return
 		}
@@ -145,9 +140,9 @@ func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 		platform := c.Param("platform")
 		username := c.Param("username")
 
-		if platform != "leetcode" && platform != "codechef" {
+		if platform != "leetcode" && platform != "codechef" && platform != "codeforces" && platform != "gfg" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Unsupported platform. Use 'leetcode' or 'codechef'.",
+				"error": "Unsupported platform. Use 'leetcode', 'codechef', 'codeforces', or 'gfg'.",
 			})
 			return
 		}
@@ -219,9 +214,9 @@ func GetContests(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		platform := c.Param("platform")
 
-		if platform != "leetcode" && platform != "codechef" && platform != "all" {
+		if platform != "leetcode" && platform != "codechef" && platform != "codeforces" && platform != "gfg" && platform != "all" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Use 'leetcode', 'codechef', or 'all'.",
+				"error": "Use 'leetcode', 'codechef', 'codeforces', 'gfg', or 'all'.",
 			})
 			return
 		}
