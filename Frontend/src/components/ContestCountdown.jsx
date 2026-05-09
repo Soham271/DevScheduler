@@ -14,6 +14,12 @@ const parseDate = (str) => {
   return isNaN(d) ? null : d;
 };
 const pad = (n) => String(n).padStart(2, '0');
+const FALLBACK_PLATFORM_URL = {
+  leetcode: 'https://leetcode.com/contest/',
+  codechef: 'https://www.codechef.com/contests',
+  codeforces: 'https://codeforces.com/contests',
+  gfg: 'https://practice.geeksforgeeks.org/contest',
+};
 
 const ContestCountdown = ({ contest }) => {
   const target = useMemo(() => parseDate(contest.scheduled_at), [contest.scheduled_at]);
@@ -35,6 +41,7 @@ const ContestCountdown = ({ contest }) => {
 
   const urgency = rem === null ? '' : rem <= 0 ? 'ring-2 ring-red-300' : rem < 3600 ? 'ring-2 ring-red-200' : rem < 86400 ? 'ring-1 ring-amber-200' : '';
   const numColor = rem === null ? 'text-gray-900' : rem < 3600 ? 'text-red-600' : rem < 86400 ? 'text-amber-600' : 'text-emerald-600';
+  const contestUrl = contest.url || contest.link || contest.contest_url || FALLBACK_PLATFORM_URL[contest.platform];
 
   return (
     <div className={`bg-white border border-gray-100 ${p.border} border-l-4 rounded-xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${urgency}`}>
@@ -46,6 +53,17 @@ const ContestCountdown = ({ contest }) => {
       </div>
       <h4 className="font-bold text-gray-900 text-sm mb-0.5">{contest.name}</h4>
       <p className="text-xs text-gray-400 mb-3">{contest.scheduled_at}</p>
+      {contestUrl && (
+        <a
+          href={contestUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="block text-xs text-blue-600 hover:text-blue-700 hover:underline truncate mb-3"
+          title={contestUrl}
+        >
+          {contestUrl}
+        </a>
+      )}
 
       {rem !== null && rem > 0 ? (
         <div className="flex gap-2">

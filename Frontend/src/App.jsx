@@ -4,6 +4,10 @@ import Navbar from './components/Navbar';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Contests from './pages/Contests';
+import Profile from './pages/Profile';
+import Schedule from './pages/Schedule';
+import Watch from './pages/Watch';
 import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
@@ -49,6 +53,10 @@ function App() {
             <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
             <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
             <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/contests" element={<ProtectedRoute element={<Contests />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<Profile />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/schedule" element={<ProtectedRoute element={<Schedule />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/watch" element={<ProtectedRoute element={<Watch />} isAuthenticated={isAuthenticated} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
