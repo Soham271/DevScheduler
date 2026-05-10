@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
 </p>
 
-<h1 align="center">🚀 DevFlow — AI-Native Developer Productivity OS</h1>
+<h1 align="center">🚀 DevScheduler</h1>
 
 <p align="center">
   <strong>A real-time competitive programming intelligence dashboard with automated email reminders, multi-platform analytics, GitHub activity tracking, and a background job scheduler — all powered by Go, React, Redis & MongoDB.</strong>
