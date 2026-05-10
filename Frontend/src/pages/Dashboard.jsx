@@ -7,7 +7,7 @@ import TierBadge from '../components/TierBadge';
 import HealthIndicator from '../components/HealthIndicator';
 import ActionButton from '../components/ActionButton';
 import ActivityFeed from '../components/ActivityFeed';
-import { Activity, AlertTriangle, BarChart3, Calendar, Code2, Eye, Flame, RefreshCw, Search, Sparkles, Terminal, Trophy, UserPlus, Zap } from 'lucide-react';
+import { Activity, AlertTriangle, BarChart3, Calendar, ChevronRight, Code2, Eye, Flame, RefreshCw, Search, Sparkles, Terminal, Trophy, UserPlus, Zap } from 'lucide-react';
 
 const pCfg = {
   leetcode: { label: 'LeetCode', icon: Code2, ph: 'Enter LeetCode username' },
@@ -188,6 +188,17 @@ const Dashboard = () => {
               </div>
             </div>
             {(analysis.performanceLevel || analysis.ratingLevel) && <div className="flex gap-3 flex-wrap">{analysis.performanceLevel && <TierBadge tier={analysis.performanceLevel} type="performance" />}{analysis.ratingLevel && <TierBadge tier={analysis.ratingLevel} type="rating" />}</div>}
+            {pCfg[analysis.platform] && (
+              <div className="pt-2">
+                <Link 
+                  to={`/platforms/${analysis.platform}`} 
+                  state={{ username: analysis.username, autoAnalyze: true }}
+                  className="text-sm font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1 w-fit"
+                >
+                  For more detail <ChevronRight size={14} />
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </section>

@@ -187,8 +187,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			now := time.Now().In(monitorIST)
 			todayDate := now.Format("2006-01-02")
 
-			// Only activate after 8:00 PM IST
-			cutoffHour := 20 // 8 PM
+			// Only activate after 5:00 PM IST
+			cutoffHour := 17 // 5 PM
 			if now.Hour() < cutoffHour {
 				continue
 			}

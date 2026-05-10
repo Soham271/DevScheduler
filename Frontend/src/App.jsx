@@ -8,6 +8,10 @@ import Contests from './pages/Contests';
 import Profile from './pages/Profile';
 import Schedule from './pages/Schedule';
 import Watch from './pages/Watch';
+import LeetCodePage from './pages/LeetCodePage';
+import CodeforcesPage from './pages/CodeforcesPage';
+import CodeChefPage from './pages/CodeChefPage';
+import GFGPage from './pages/GFGPage';
 import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
@@ -57,6 +61,10 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute element={<Profile />} isAuthenticated={isAuthenticated} />} />
             <Route path="/schedule" element={<ProtectedRoute element={<Schedule />} isAuthenticated={isAuthenticated} />} />
             <Route path="/watch" element={<ProtectedRoute element={<Watch />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/leetcode" element={<ProtectedRoute element={<LeetCodePage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/codeforces" element={<ProtectedRoute element={<CodeforcesPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/gfg" element={<ProtectedRoute element={<GFGPage />} isAuthenticated={isAuthenticated} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

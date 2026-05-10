@@ -52,6 +52,35 @@ func SetupRouter(rdb *redis.Client) *gin.Engine {
 		protected.POST("/user/profile", handler.UpdateUserProfile())
 	}
 
+	// ─── LeetCode Intelligence Platform ─────────
+	leetcode := protected.Group("/platforms/leetcode")
+	{
+		leetcode.POST("/analyze", handler.LeetCodeAnalyze(rdb))
+	}
+	// Public LeetCode read endpoints
+	r.GET("/platforms/leetcode/profile", handler.LeetCodeGetProfile(rdb))
+	r.GET("/platforms/leetcode/heatmap", handler.LeetCodeGetHeatmap(rdb))
+	r.GET("/platforms/leetcode/submissions", handler.LeetCodeGetSubmissions(rdb))
+	r.GET("/platforms/leetcode/contests", handler.LeetCodeGetContests(rdb))
+
+	// ─── Codeforces Intelligence Platform ─────────
+	codeforces := protected.Group("/platforms/codeforces")
+	{
+		codeforces.POST("/analyze", handler.CodeforcesAnalyze(rdb))
+	}
+
+	// ─── CodeChef Intelligence Platform ─────────
+	codechef := protected.Group("/platforms/codechef")
+	{
+		codechef.POST("/analyze", handler.CodeChefAnalyze(rdb))
+	}
+
+	// ─── GeeksForGeeks Intelligence Platform ─────────
+	gfg := protected.Group("/platforms/gfg")
+	{
+		gfg.POST("/analyze", handler.GFGAnalyze(rdb))
+	}
+
 	// ─── Public read-only routes ────────────────
 	r.GET("/users", handler.ListUsers(rdb))
 	r.GET("/contests/:platform", handler.GetContests(rdb))

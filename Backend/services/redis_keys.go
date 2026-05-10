@@ -27,10 +27,10 @@ import (
 var rctx = context.Background()
 
 // MaxInactivityReminders is the maximum number of inactivity reminders per user per day.
-const MaxInactivityReminders = 5
+const MaxInactivityReminders = 8
 
 // ReminderIntervalMinutes is the gap between consecutive inactivity reminders.
-const ReminderIntervalMinutes = 30
+const ReminderIntervalMinutes = 60
 
 // ─── User Activity (solve count tracking) ───────────────────
 

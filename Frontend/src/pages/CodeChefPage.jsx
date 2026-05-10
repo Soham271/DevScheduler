@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../services/api';
+import { getLocalProfile } from '../utils/auth';
+import {
+  Activity, BarChart3, Flame, Trophy, Calendar,
+  Zap, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Search, Star, Globe, MapPin
+} from 'lucide-react';
+
+// ═══════════════════════════════════════════════════════════════
+//  Stats Card
+// ═══════════════════════════════════════════════════════════════
+const StatCard = ({ label, value, subtitle, color = 'text-gray-900', icon: Icon }) => (
+  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow group">
+    <div className="flex items-center justify-between mb-3">
+      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
+      {Icon && <Icon size={16} className="text-gray-300 group-hover:text-amber-500 transition-colors" />}
+    </div>
+    <p className={`text-2xl font-bold ${color} tracking-tight`}>{value}</p>
+    {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+  </motion.div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+//  Contest Card
+// ═══════════════════════════════════════════════════════════════
+const ContestCard = ({ contest }) => {
+  const change = contest.rating_change;
+  const isPositive = change >= 0;
+  return (
+    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white border border-gray-100 hover:shadow-sm transition">
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isPositive ? 'bg-emerald-50' : 'bg-red-50'}`}>
+        <TrendingUp size={16} className={isPositive ? 'text-emerald-500' : 'text-red-400'} style={isPositive ? {} : { transform: 'scaleY(-1)' }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 truncate">{contest.contest_name}</p>
+        <div className="flex items-center gap-3 mt-0.5">
+          <span className="text-xs text-gray-500">Rank #{contest.rank}</span>
+          <span className="text-xs text-gray-500">{contest.old_rating} → {contest.new_rating}</span>
+        </div>
+      </div>
+      <div className="text-right shrink-0">
+        <p className={`text-sm font-bold ${isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
+          {isPositive ? '+' : ''}{change}
+        </p>
+        <p className="text-[10px] text-gray-400">Rating Δ</p>
+      </div>
+    </motion.div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  Star Rating Display
+// ═══════════════════════════════════════════════════════════════
+const StarDisplay = ({ stars }) => {
+  if (!stars) return null;
+  const count = (stars.match(/★/g) || []).length || parseInt(stars) || 0;
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: Math.min(count, 7) }).map((_, i) => (
+        <Star key={i} size={18} className="text-amber-400 fill-amber-400" />
+      ))}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  Main CodeChef Intelligence Page
+// ═══════════════════════════════════════════════════════════════
+const CodeChefPage = () => {
+  const stored = getLocalProfile();
+  const [username, setUsername] = useState(stored?.codechef_username || '');
+  const [profile, setProfile] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [error, setError] = useState('');
+  const [showAllContests, setShowAllContests] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.username && location.state?.autoAnalyze) {
+      const u = location.state.username;
+      setUsername(u);
+      const run = async () => {
+        setAnalyzing(true); setError(''); setProfile(null);
+        try { const data = await api.codechefAnalyze(u); setProfile(data.profile); }
+        catch (err) { setError(err.message || 'Failed to analyze.'); }
+        finally { setAnalyzing(false); }
+      };
+      if (!profile || profile.username !== u) run();
+    }
+  }, [location.state]);
+
+  const doAnalyze = async (e) => {
+    e.preventDefault();
+    const u = username.trim();
+    if (!u) { setError('Please enter a CodeChef username.'); return; }
+    setAnalyzing(true); setError(''); setProfile(null);
+    try { const data = await api.codechefAnalyze(u); setProfile(data.profile); }
+    catch (err) { setError(err.message || 'Failed to analyze.'); }
+    finally { setAnalyzing(false); }
+  };
+
+  return (
+    <div className="w-full max-w-7xl mx-auto flex flex-col gap-5 animate-fade-in-up">
+      {/* Header */}
+      <motion.header initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 to-yellow-500 flex items-center justify-center shadow-lg">
+            <Trophy size={22} className="text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">CodeChef Intelligence</h1>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Live</span>
+            </div>
+            <p className="text-sm text-gray-500 mt-0.5">Track your CodeChef rating, stars, and contest performance.</p>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Analyze */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="mb-4">
+          <span className="flex items-center gap-1 text-xs font-bold text-amber-600 uppercase tracking-wider"><Zap size={12} /> CodeChef Analysis</span>
+          <h2 className="text-lg font-bold text-gray-900 mt-0.5">Analyze Profile</h2>
+        </div>
+        <form onSubmit={doAnalyze} className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-center">
+          <div className="relative">
+            <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={17} />
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter CodeChef username"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition placeholder:text-gray-400" />
+          </div>
+          <button type="submit" disabled={analyzing || !username.trim()}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 text-white text-sm font-semibold shadow-sm hover:shadow-md transition disabled:opacity-50">
+            {analyzing ? <><Activity size={15} className="animate-spin" /> Analyzing...</> : <><BarChart3 size={15} /> Analyze</>}
+          </button>
+        </form>
+        {error && <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm text-center">{error}</div>}
+        {!profile && !error && !analyzing && (
+          <div className="mt-5 flex items-center gap-4 p-5 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50">
+            <Search size={20} className="text-amber-400 shrink-0" />
+            <div><strong className="text-sm text-gray-700 block">No analysis yet</strong><p className="text-xs text-gray-500 mt-0.5">Enter your CodeChef username and hit Analyze.</p></div>
+          </div>
+        )}
+      </section>
+
+      {/* Results */}
+      <AnimatePresence>
+        {profile && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-5">
+            {/* Star & Rating Banner */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-gray-400 uppercase block mb-1">CodeChef Stars</span>
+                  <StarDisplay stars={profile.stars} />
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-gray-400 uppercase block">Max Rating</span>
+                  <h3 className="text-2xl font-bold text-amber-600">{profile.max_rating || '-'}</h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <StatCard icon={BarChart3} label="Current Rating" value={profile.rating || '-'} subtitle={`Max: ${profile.max_rating || '-'}`} color="text-amber-600" />
+              <StatCard icon={Trophy} label="Problems Solved" value={profile.total_solved || '-'} subtitle="Total solved" />
+              <StatCard icon={Calendar} label="Contests" value={profile.contest_count || 0} subtitle="Participated" />
+              <StatCard icon={Globe} label="Global Rank" value={profile.global_rank ? `#${profile.global_rank}` : '-'} subtitle={profile.country_rank ? `Country: #${profile.country_rank}` : ''} />
+            </div>
+
+            {/* Contest History */}
+            {profile.contest_history?.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <Trophy size={18} className="text-amber-500" /> Contest History
+                  </h3>
+                  <button onClick={() => setShowAllContests(!showAllContests)}
+                    className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1">
+                    {showAllContests ? 'Show Less' : 'Show All'}
+                    {showAllContests ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                </div>
+                {showAllContests && (
+                  <div className="flex flex-col gap-2 mt-4">
+                    {[...profile.contest_history].reverse().map((c, i) => <ContestCard key={i} contest={c} />)}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default CodeChefPage;

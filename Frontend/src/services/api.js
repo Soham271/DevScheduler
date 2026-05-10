@@ -100,4 +100,40 @@ export const api = {
   clearActivities: async () => {
     return request('POST', '/activities/clear', null, true);
   },
+
+  // ─── LeetCode Intelligence ─────────────────
+  leetcodeAnalyze: async (username) => {
+    return request('POST', '/platforms/leetcode/analyze', { username }, true);
+  },
+
+  leetcodeGetProfile: async (username) => {
+    return request('GET', `/platforms/leetcode/profile?username=${encodeURIComponent(username)}`, null, false);
+  },
+
+  leetcodeGetHeatmap: async (username) => {
+    return request('GET', `/platforms/leetcode/heatmap?username=${encodeURIComponent(username)}`, null, false);
+  },
+
+  leetcodeGetSubmissions: async (username) => {
+    return request('GET', `/platforms/leetcode/submissions?username=${encodeURIComponent(username)}`, null, false);
+  },
+
+  leetcodeGetContests: async (username) => {
+    return request('GET', `/platforms/leetcode/contests?username=${encodeURIComponent(username)}`, null, false);
+  },
+
+  // ─── Codeforces Intelligence ─────────────────
+  codeforcesAnalyze: async (username) => {
+    return request('POST', '/platforms/codeforces/analyze', { username }, true);
+  },
+
+  // ─── CodeChef Intelligence ─────────────────
+  codechefAnalyze: async (username) => {
+    return request('POST', '/platforms/codechef/analyze', { username }, true);
+  },
+
+  // ─── GeeksForGeeks Intelligence ─────────────────
+  gfgAnalyze: async (username) => {
+    return request('POST', '/platforms/gfg/analyze', { username }, true);
+  },
 };
