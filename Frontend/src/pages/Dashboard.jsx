@@ -138,16 +138,14 @@ const Dashboard = () => {
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white text-2xl font-extrabold uppercase shadow-lg">{initial}</div>
           <div>
-            <span className="flex items-center gap-1 text-xs font-bold text-brand-500 uppercase tracking-wider"><Sparkles size={12} /> DevFlow Scheduler</span>
+            <span className="flex items-center gap-1 text-xs font-bold text-brand-500 uppercase tracking-wider"><Sparkles size={12} /> DevScheduler</span>
             <h1 className="text-xl font-bold text-gray-900 mt-0.5">Welcome back{email ? `, ${email.split('@')[0]}` : ''}</h1>
             <p className="text-sm text-gray-500">{email || 'DevFlow User'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <HealthIndicator />
-          <button onClick={load} disabled={refreshing} className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 shadow-sm">
-            <RefreshCw size={15} className={refreshing ? 'icon-spin' : ''} /> Refresh
-          </button>
+
         </div>
       </header>
 
@@ -190,8 +188,8 @@ const Dashboard = () => {
             {(analysis.performanceLevel || analysis.ratingLevel) && <div className="flex gap-3 flex-wrap">{analysis.performanceLevel && <TierBadge tier={analysis.performanceLevel} type="performance" />}{analysis.ratingLevel && <TierBadge tier={analysis.ratingLevel} type="rating" />}</div>}
             {pCfg[analysis.platform] && (
               <div className="pt-2">
-                <Link 
-                  to={`/platforms/${analysis.platform}`} 
+                <Link
+                  to={`/platforms/${analysis.platform}`}
                   state={{ username: analysis.username, autoAnalyze: true }}
                   className="text-sm font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1 w-fit"
                 >

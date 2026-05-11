@@ -1,54 +1,46 @@
 import React from 'react';
-import styled from 'styled-components';
+import { motion } from 'framer-motion';
 
 const ActionButton = ({ children, onClick, disabled, type = 'button', className = '' }) => {
   return (
-    <Wrapper className={className}>
-      <button onClick={onClick} disabled={disabled} type={type}>
+    <motion.button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      whileHover={disabled ? {} : { scale: 1.03 }}
+      whileTap={disabled ? {} : { scale: 0.97 }}
+      className={`relative inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold overflow-hidden transition-all duration-300 ${className}`}
+      style={{
+        background: disabled 
+          ? 'rgba(148,163,184,0.12)' 
+          : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%)',
+        backgroundSize: '200% 200%',
+        color: disabled ? '#94a3b8' : '#fff',
+        border: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        boxShadow: disabled 
+          ? 'none' 
+          : '0 2px 12px rgba(99,102,241,0.25), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15)',
+        fontFamily: 'inherit',
+        letterSpacing: '0.01em',
+      }}
+    >
+      {/* Shimmer overlay on hover */}
+      {!disabled && (
+        <span
+          className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
+            animation: 'shimmer 3s linear infinite',
+            backgroundSize: '200% 100%',
+          }}
+        />
+      )}
+      <span className="relative z-10 flex items-center gap-2">
         {children}
-      </button>
-    </Wrapper>
+      </span>
+    </motion.button>
   );
 };
-
-const Wrapper = styled.div`
-  display: inline-flex;
-  button {
-    padding: 0.65rem 1.5rem;
-    border-radius: 30em;
-    font-size: 14px;
-    font-family: inherit;
-    font-weight: 600;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-    cursor: pointer;
-    color: #1e293b;
-    background: #fff;
-    box-shadow: 4px 4px 10px #d1d5db, -4px -4px 10px #ffffff;
-    transition: color .3s ease, box-shadow .3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-  button::before {
-    content: '';
-    width: 0;
-    height: 100%;
-    border-radius: 30em;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-image: linear-gradient(to right, #0fd850 0%, #f9f047 100%);
-    transition: .4s ease;
-    display: block;
-    z-index: -1;
-  }
-  button:hover:not(:disabled)::before { width: 100%; }
-  button:hover:not(:disabled) { color: #1a1a2e; box-shadow: 4px 4px 14px #c5c5c5, -4px -4px 14px #ffffff; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  button:active:not(:disabled) { transform: scale(.97); }
-`;
 
 export default ActionButton;
