@@ -12,6 +12,7 @@ import LeetCodePage from './pages/LeetCodePage';
 import CodeforcesPage from './pages/CodeforcesPage';
 import CodeChefPage from './pages/CodeChefPage';
 import GFGPage from './pages/GFGPage';
+import GitHubPage from './pages/GitHubPage';
 import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
@@ -65,6 +66,7 @@ function App() {
             <Route path="/platforms/codeforces" element={<ProtectedRoute element={<CodeforcesPage />} isAuthenticated={isAuthenticated} />} />
             <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
             <Route path="/platforms/gfg" element={<ProtectedRoute element={<GFGPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/github" element={<ProtectedRoute element={<GitHubPage />} isAuthenticated={isAuthenticated} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

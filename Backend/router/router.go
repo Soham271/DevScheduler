@@ -81,6 +81,12 @@ func SetupRouter(rdb *redis.Client) *gin.Engine {
 		gfg.POST("/analyze", handler.GFGAnalyze(rdb))
 	}
 
+	// ─── GitHub Intelligence Platform ─────────
+	github := protected.Group("/platforms/github")
+	{
+		github.POST("/analyze", handler.GitHubAnalyze(rdb))
+	}
+
 	// ─── Public read-only routes ────────────────
 	r.GET("/users", handler.ListUsers(rdb))
 	r.GET("/contests/:platform", handler.GetContests(rdb))

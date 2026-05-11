@@ -1,8 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,17 +18,17 @@ import (
 // ═══════════════════════════════════════════════════════════════
 
 type CodeChefFullProfile struct {
-	Username       string              `json:"username"`
-	Rating         int                 `json:"rating"`
-	MaxRating      int                 `json:"max_rating"`
-	Stars          string              `json:"stars"`
-	GlobalRank     int                 `json:"global_rank"`
-	CountryRank    int                 `json:"country_rank"`
-	TotalSolved    int                 `json:"total_solved"`
-	IsActiveToday  bool                `json:"is_active_today"`
-	ContestCount   int                 `json:"contest_count"`
-	ContestHistory []CodeChefContest   `json:"contest_history"`
-	FetchedAt      time.Time           `json:"fetched_at"`
+	Username       string            `json:"username"`
+	Rating         int               `json:"rating"`
+	MaxRating      int               `json:"max_rating"`
+	Stars          string            `json:"stars"`
+	GlobalRank     int               `json:"global_rank"`
+	CountryRank    int               `json:"country_rank"`
+	TotalSolved    int               `json:"total_solved"`
+	IsActiveToday  bool              `json:"is_active_today"`
+	ContestCount   int               `json:"contest_count"`
+	ContestHistory []CodeChefContest `json:"contest_history"`
+	FetchedAt      time.Time         `json:"fetched_at"`
 }
 
 type CodeChefContest struct {
@@ -71,11 +73,13 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 	c.OnHTML(".rating-header .small", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		if strings.Contains(txt, "Highest Rating") {
-			parts := strings.Split(txt, "(")
-			if len(parts) > 1 {
-				numStr := strings.TrimRight(parts[1], ")")
-				numStr = strings.TrimSpace(numStr)
-				fmt.Sscanf(numStr, "%d", &profile.MaxRating)
+			// e.g. "Highest Rating 1573" or "Highest Rating (1573)"
+			re := regexp.MustCompile(`Highest Rating\s*\(?(\d+)\)?`)
+			matches := re.FindStringSubmatch(txt)
+			if len(matches) > 1 {
+				if n, err := strconv.Atoi(matches[1]); err == nil {
+					profile.MaxRating = n
+				}
 			}
 		}
 	})
@@ -92,54 +96,50 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 	c.OnHTML(".inline-list li", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		if strings.Contains(txt, "Global Rank") {
-			parts := strings.Fields(txt)
-			for _, p := range parts {
-				if n, err := strconv.Atoi(p); err == nil {
-					profile.GlobalRank = n
-					break
-				}
+			re := regexp.MustCompile(`Global Rank.*?(\d+)`)
+			if m := re.FindStringSubmatch(txt); len(m) > 1 {
+				profile.GlobalRank, _ = strconv.Atoi(m[1])
 			}
 		}
 		if strings.Contains(txt, "Country Rank") {
-			parts := strings.Fields(txt)
-			for _, p := range parts {
-				if n, err := strconv.Atoi(p); err == nil {
-					profile.CountryRank = n
-					break
-				}
+			re := regexp.MustCompile(`Country Rank.*?(\d+)`)
+			if m := re.FindStringSubmatch(txt); len(m) > 1 {
+				profile.CountryRank, _ = strconv.Atoi(m[1])
 			}
 		}
 	})
 
-	// Contest participation rows
-	c.OnHTML(".contest-rating-table tbody tr", func(e *colly.HTMLElement) {
-		var cols []string
-		e.ForEach("td", func(_ int, td *colly.HTMLElement) {
-			cols = append(cols, strings.TrimSpace(td.Text))
-		})
-		if len(cols) >= 4 {
-			contestName := cols[0]
-			contestCode := ""
-			e.ForEach("td:first-child a", func(_ int, a *colly.HTMLElement) {
-				href := a.Attr("href")
-				parts := strings.Split(href, "/")
-				if len(parts) > 0 {
-					contestCode = parts[len(parts)-1]
+	// Extract Contest Graph Data from Script
+	c.OnHTML("script", func(e *colly.HTMLElement) {
+		txt := e.Text
+		if strings.Contains(txt, "var all_rating = ") {
+			re := regexp.MustCompile(`var all_rating = (\[.*?\]);`)
+			matches := re.FindStringSubmatch(txt)
+			if len(matches) > 1 {
+				jsonStr := matches[1]
+				var rawContests []struct {
+					Code   string `json:"code"`
+					Rating string `json:"rating"`
+					Rank   string `json:"rank"`
+					Name   string `json:"name"`
 				}
-			})
-
-			rank, _ := strconv.Atoi(cols[1])
-			oldR, _ := strconv.Atoi(cols[2])
-			newR, _ := strconv.Atoi(cols[3])
-
-			profile.ContestHistory = append(profile.ContestHistory, CodeChefContest{
-				ContestName:  contestName,
-				ContestCode:  contestCode,
-				Rank:         rank,
-				OldRating:    oldR,
-				NewRating:    newR,
-				RatingChange: newR - oldR,
-			})
+				if err := json.Unmarshal([]byte(jsonStr), &rawContests); err == nil {
+					prevRating := 1500
+					for _, rc := range rawContests {
+						r, _ := strconv.Atoi(rc.Rating)
+						rank, _ := strconv.Atoi(rc.Rank)
+						profile.ContestHistory = append(profile.ContestHistory, CodeChefContest{
+							ContestName:  rc.Name,
+							ContestCode:  rc.Code,
+							Rank:         rank,
+							OldRating:    prevRating,
+							NewRating:    r,
+							RatingChange: r - prevRating,
+						})
+						prevRating = r
+					}
+				}
+			}
 		}
 	})
 
@@ -153,9 +153,35 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 	}
 
 	profile.ContestCount = len(profile.ContestHistory)
+	if profile.ContestCount > 0 && profile.MaxRating == 0 {
+		maxR := 0
+		for _, c := range profile.ContestHistory {
+			if c.NewRating > maxR {
+				maxR = c.NewRating
+			}
+		}
+		profile.MaxRating = maxR
+	}
 
-	log.Printf("📊 [CodeChef] %s: rating=%d, solved=%d, contests=%d",
-		username, profile.Rating, profile.TotalSolved, profile.ContestCount)
+	// Calculate stars
+	if profile.Rating < 1400 {
+		profile.Stars = "1★"
+	} else if profile.Rating < 1600 {
+		profile.Stars = "2★"
+	} else if profile.Rating < 1800 {
+		profile.Stars = "3★"
+	} else if profile.Rating < 2000 {
+		profile.Stars = "4★"
+	} else if profile.Rating < 2200 {
+		profile.Stars = "5★"
+	} else if profile.Rating < 2500 {
+		profile.Stars = "6★"
+	} else {
+		profile.Stars = "7★"
+	}
+
+	log.Printf("📊 [CodeChef] %s: rating=%d, stars=%s, max_rating=%d, solved=%d, contests=%d",
+		username, profile.Rating, profile.Stars, profile.MaxRating, profile.TotalSolved, profile.ContestCount)
 
 	return profile, nil
 }

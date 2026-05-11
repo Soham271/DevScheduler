@@ -7,6 +7,9 @@ import {
   Activity, BarChart3, Flame, Trophy, Calendar,
   Zap, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Search, Star, Globe, MapPin
 } from 'lucide-react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+} from 'recharts';
 
 // ═══════════════════════════════════════════════════════════════
 //  Stats Card
@@ -63,6 +66,76 @@ const StarDisplay = ({ stars }) => {
       {Array.from({ length: Math.min(count, 7) }).map((_, i) => (
         <Star key={i} size={18} className="text-amber-400 fill-amber-400" />
       ))}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  Rating Graph
+// ═══════════════════════════════════════════════════════════════
+const RatingGraph = ({ history }) => {
+  if (!history || history.length === 0) return null;
+
+  const data = history.map((c, i) => ({
+    name: c.contest_name,
+    rating: c.new_rating,
+    index: i + 1
+  }));
+
+  const minRating = Math.max(0, Math.min(...data.map(d => d.rating)) - 100);
+  const maxRating = Math.max(...data.map(d => d.rating)) + 100;
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-100 z-50">
+          <p className="text-xs font-bold text-gray-900 mb-1">{payload[0].payload.name}</p>
+          <p className="text-sm font-bold text-amber-600">Rating: {payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+          <TrendingUp size={18} className="text-amber-500" /> Rating Graph
+        </h3>
+        <span className="text-xs font-bold text-gray-400 uppercase">
+          Participated: {history.length}
+        </span>
+      </div>
+      <div className="h-[250px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+            <XAxis dataKey="index" tick={false} axisLine={false} />
+            <YAxis 
+              domain={[minRating, maxRating]} 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 12, fill: '#9ca3af' }} 
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }} />
+            <ReferenceLine y={1400} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <ReferenceLine y={1600} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <ReferenceLine y={1800} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <ReferenceLine y={2000} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <ReferenceLine y={2200} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <Line 
+              type="monotone" 
+              dataKey="rating" 
+              stroke="#d97706" 
+              strokeWidth={3}
+              dot={{ r: 4, fill: '#d97706', strokeWidth: 0 }}
+              activeDot={{ r: 6, fill: '#b45309' }}
+              animationDuration={1000}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
@@ -175,6 +248,11 @@ const CodeChefPage = () => {
               <StatCard icon={Calendar} label="Contests" value={profile.contest_count || 0} subtitle="Participated" />
               <StatCard icon={Globe} label="Global Rank" value={profile.global_rank ? `#${profile.global_rank}` : '-'} subtitle={profile.country_rank ? `Country: #${profile.country_rank}` : ''} />
             </div>
+
+            {/* Rating Graph */}
+            {profile.contest_history?.length > 0 && (
+              <RatingGraph history={profile.contest_history} />
+            )}
 
             {/* Contest History */}
             {profile.contest_history?.length > 0 && (

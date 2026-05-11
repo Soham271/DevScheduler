@@ -136,4 +136,9 @@ export const api = {
   gfgAnalyze: async (username) => {
     return request('POST', '/platforms/gfg/analyze', { username }, true);
   },
+
+  // ─── GitHub Intelligence ─────────────────
+  githubAnalyze: async (username) => {
+    return request('POST', '/platforms/github/analyze', { username }, true);
+  },
 };
