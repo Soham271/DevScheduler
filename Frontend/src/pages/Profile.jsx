@@ -92,42 +92,42 @@ const Profile = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-5 animate-fade-in-up">
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <section className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-2xl font-extrabold shadow-lg">
+            <div className="w-14 h-14 rounded-[12px] bg-[var(--color-charcoal)] flex items-center justify-center text-[var(--color-canvas-white)] text-2xl font-extrabold shadow-lg">
               {initial}
             </div>
             <div>
-              <span className="flex items-center gap-1 text-xs font-bold text-brand-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-charcoal)] uppercase tracking-wider">
                 <UserCircle2 size={12} /> Profile
               </span>
-              <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
-              <p className="text-sm text-gray-500">{email || 'No email available'}</p>
+              <h1 className="text-2xl font-bold text-[var(--color-charcoal)]">{displayName}</h1>
+              <p className="text-sm text-[var(--color-cool-gray)]">{email || 'No email available'}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-            <div className="px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 min-w-[140px]">
-              <p className="text-xs text-gray-500 uppercase font-semibold tracking-wide">Live Contests</p>
-              <p className="text-xl font-bold text-gray-900">{stats.loading ? '...' : stats.contests}</p>
+            <div className="px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] min-w-[140px]">
+              <p className="text-xs text-[var(--color-cool-gray)] uppercase font-semibold tracking-wide">Live Contests</p>
+              <p className="text-xl font-bold text-[var(--color-charcoal)]">{stats.loading ? '...' : stats.contests}</p>
             </div>
-            <div className="px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 min-w-[140px]">
-              <p className="text-xs text-gray-500 uppercase font-semibold tracking-wide">Watched Handles</p>
-              <p className="text-xl font-bold text-gray-900">{stats.loading ? '...' : stats.watched}</p>
+            <div className="px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] min-w-[140px]">
+              <p className="text-xs text-[var(--color-cool-gray)] uppercase font-semibold tracking-wide">Watched Handles</p>
+              <p className="text-xl font-bold text-[var(--color-charcoal)]">{stats.loading ? '...' : stats.watched}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <section className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
         <div className="mb-5">
-          <h2 className="text-xl font-bold text-gray-900">Connected Handles</h2>
-          <p className="text-sm text-gray-500 mt-1">Update your coding platform usernames here.</p>
+          <h2 className="text-xl font-bold text-[var(--color-charcoal)]">Connected Handles</h2>
+          <p className="text-sm text-[var(--color-cool-gray)] mt-1">Update your coding platform usernames here.</p>
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">LeetCode</label>
+            <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-1.5">LeetCode</label>
             <AuthInput
               type="text"
               value={profile.leetcode_username}
@@ -136,22 +136,22 @@ const Profile = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">CodeChef Username</label>
+            <label className="block text-xs font-semibold text-[var(--color-charcoal)] uppercase tracking-wider mb-2">CodeChef Username</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Code2 size={18} className="text-gray-400 group-focus-within:text-brand-500 transition-colors" />
+                <Code2 size={18} className="text-[var(--color-cool-gray)] group-focus-within:text-[var(--color-charcoal)] transition-colors" />
               </div>
               <input
                 type="text"
                 value={profile.codechef_username}
                 onChange={(e) => handleChange('codechef_username', e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm font-medium"
+                className="block w-full pl-10 pr-3 py-3 border border-[var(--color-ash-gray)] rounded-[12px] bg-[var(--color-buttermilk)] focus:bg-[var(--color-canvas-white)] focus:ring-2 focus:ring-[var(--color-charcoal)]/20 focus:border-[var(--color-charcoal)] transition-all text-sm font-medium"
                 placeholder="e.g. tourist"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Codeforces</label>
+            <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-1.5">Codeforces</label>
             <AuthInput
               type="text"
               value={profile.codeforces_username}
@@ -160,22 +160,22 @@ const Profile = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">GitHub Username</label>
+            <label className="block text-xs font-semibold text-[var(--color-charcoal)] uppercase tracking-wider mb-2">GitHub Username</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <GithubIcon size={18} className="text-gray-400 group-focus-within:text-brand-500 transition-colors" />
+                <GithubIcon size={18} className="text-[var(--color-cool-gray)] group-focus-within:text-[var(--color-charcoal)] transition-colors" />
               </div>
               <input
                 type="text"
                 value={profile.github_username}
                 onChange={(e) => handleChange('github_username', e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm font-medium"
+                className="block w-full pl-10 pr-3 py-3 border border-[var(--color-ash-gray)] rounded-[12px] bg-[var(--color-buttermilk)] focus:bg-[var(--color-canvas-white)] focus:ring-2 focus:ring-[var(--color-charcoal)]/20 focus:border-[var(--color-charcoal)] transition-all text-sm font-medium"
                 placeholder="e.g. torvalds"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">GeeksForGeeks</label>
+            <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-1.5">GeeksForGeeks</label>
             <AuthInput
               type="text"
               value={profile.gfg_username}
@@ -187,7 +187,7 @@ const Profile = () => {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-sm font-semibold shadow-md hover:shadow-lg disabled:opacity-60 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-[12px] bg-[var(--color-charcoal)] text-[var(--color-canvas-white)] text-sm font-semibold shadow-[var(--shadow-subtle)] hover:shadow-lg disabled:opacity-60 transition-all"
           >
             {saving ? <Activity size={15} className="icon-spin" /> : <Save size={15} />}
             {saving ? 'Saving...' : 'Save Profile'}
@@ -195,26 +195,26 @@ const Profile = () => {
         </form>
 
         {status && (
-          <div className={`mt-4 p-3 rounded-xl text-sm text-center ${status.type === 'ok' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+          <div className={`mt-4 p-3 rounded-[12px] text-sm text-center ${status.type === 'ok' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
             {status.message}
           </div>
         )}
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link to="/contests" className="no-underline p-4 rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center gap-2 text-brand-600 text-xs font-bold uppercase tracking-wide">
+        <Link to="/contests" className="no-underline p-4 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)] hover:shadow-[var(--shadow-subtle)] transition-all">
+          <div className="flex items-center gap-2 text-[var(--color-charcoal)] text-xs font-bold uppercase tracking-wide">
             <CalendarDays size={13} /> Live Contest Page
           </div>
-          <p className="text-gray-900 font-semibold mt-1">Open all contest countdowns</p>
-          <p className="text-sm text-gray-500">Go to the dedicated contests page.</p>
+          <p className="text-[var(--color-charcoal)] font-semibold mt-1">Open all contest countdowns</p>
+          <p className="text-sm text-[var(--color-cool-gray)]">Go to the dedicated contests page.</p>
         </Link>
-        <Link to="/dashboard" className="no-underline p-4 rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all">
+        <Link to="/dashboard" className="no-underline p-4 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)] hover:shadow-[var(--shadow-subtle)] transition-all">
           <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold uppercase tracking-wide">
             <Eye size={13} /> Dashboard
           </div>
-          <p className="text-gray-900 font-semibold mt-1">Back to analysis and monitoring</p>
-          <p className="text-sm text-gray-500">Continue with your daily workflow.</p>
+          <p className="text-[var(--color-charcoal)] font-semibold mt-1">Back to analysis and monitoring</p>
+          <p className="text-sm text-[var(--color-cool-gray)]">Continue with your daily workflow.</p>
         </Link>
       </section>
     </div>

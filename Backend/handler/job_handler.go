@@ -53,12 +53,19 @@ func CreateJob(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-func f1(a, b int) int {
-	return a * b
-}
-
 func genMsg(u, p string) string {
 	return fmt.Sprintf("%s, you haven't solved any problem on %s today! Please solve at least one problem to keep your streak going.", u, p)
+}
+
+func formatRFC3339Timestamp(value any) string {
+	switch v := value.(type) {
+	case time.Time:
+		return v.UTC().Format(time.RFC3339)
+	case string:
+		return v
+	default:
+		return ""
+	}
 }
 
 func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
@@ -161,9 +168,7 @@ func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Store in Redis: registered_user:<platform>:<username> = email
-		key := fmt.Sprintf("registered_user:%s:%s", platform, username)
-		err := rdb.Set(config.Ctx, key, req.Email, 0).Err()
+		registration, err := services.SaveMonitoredRegistration(rdb, platform, username, req.Email, time.Now())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to register user in Redis",
@@ -174,10 +179,12 @@ func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 		log.Printf("✅ Registered user %s@%s (%s) for periodic monitoring", username, platform, req.Email)
 
 		c.JSON(http.StatusCreated, gin.H{
-			"message":  "User registered for monitoring",
-			"platform": platform,
-			"username": username,
-			"email":    req.Email,
+			"message":       "User registered for monitoring",
+			"platform":      platform,
+			"username":      username,
+			"email":         req.Email,
+			"registered_at": registration.RegisteredAt,
+			"expires_at":    registration.ExpiresAt,
 		})
 	}
 }
@@ -189,16 +196,25 @@ func ListUsers(rdb *redis.Client) gin.HandlerFunc {
 		users := events.GetRegisteredUsers(rdb)
 
 		type UserEntry struct {
-			Platform string `json:"platform"`
-			Username string `json:"username"`
+			Platform     string `json:"platform"`
+			Username     string `json:"username"`
+			Email        string `json:"email,omitempty"`
+			RegisteredAt string `json:"registered_at,omitempty"`
+			ExpiresAt    string `json:"expires_at,omitempty"`
 		}
 
 		var userList []UserEntry
 		for _, u := range users {
-			userList = append(userList, UserEntry{
+			entry := UserEntry{
 				Platform: u.Platform,
 				Username: u.Username,
-			})
+			}
+			if registration, ok := services.GetMonitoredRegistration(rdb, u.Platform, u.Username); ok {
+				entry.Email = registration.Email
+				entry.RegisteredAt = formatRFC3339Timestamp(registration.RegisteredAt)
+				entry.ExpiresAt = formatRFC3339Timestamp(registration.ExpiresAt)
+			}
+			userList = append(userList, entry)
 		}
 
 		c.JSON(http.StatusOK, gin.H{

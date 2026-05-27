@@ -10,6 +10,13 @@ const pCfg = {
   gfg: { label: 'GeeksForGeeks', icon: Code2, field: 'gfg_username' },
 };
 
+const formatWatchDate = (value) => {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toLocaleString();
+};
+
 const Watch = () => {
   const email = getUserEmail();
   const stored = getLocalProfile();
@@ -60,55 +67,64 @@ const Watch = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-5 animate-fade-in-up">
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <section className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
         <div className="mb-5">
-          <span className="text-xs font-bold text-brand-500 uppercase tracking-wider flex items-center gap-1"><Eye size={12} /> Monitoring</span>
-          <h1 className="text-2xl font-bold text-gray-900 mt-1">Watched Handles</h1>
-          <p className="text-sm text-gray-500 mt-1">Use your profile handles and start watching activity.</p>
+          <span className="text-xs font-bold text-[var(--color-charcoal)] uppercase tracking-wider flex items-center gap-1"><Eye size={12} /> Monitoring</span>
+          <h1 className="text-2xl font-bold text-[var(--color-charcoal)] mt-1">Watched Handles</h1>
+          <p className="text-sm text-[var(--color-cool-gray)] mt-1">Use your profile handles and start watching activity.</p>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {Object.entries(pCfg).map(([k, cfg]) => {
             const I = cfg.icon;
             return (
-              <button key={k} onClick={() => setPlat(k)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition ${plat === k ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+              <button key={k} onClick={() => setPlat(k)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition ${plat === k ? 'bg-brand-50 text-[var(--color-charcoal)] border-[var(--color-charcoal)]' : 'bg-[var(--color-canvas-white)] text-[var(--color-slate-blue)] border-[var(--color-ash-gray)] hover:bg-[var(--color-buttermilk)]'}`}>
                 <I size={13} /> {cfg.label}
               </button>
             );
           })}
         </div>
 
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 mb-4">
-          <p className="text-sm text-gray-600">Selected handle: <strong>{username || 'Not set in profile'}</strong></p>
-          <button onClick={doMonitor} disabled={reging} className="mt-3 flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 shadow-sm">
+        <div className="p-4 rounded-[12px] bg-[var(--color-buttermilk)] border border-[var(--color-ash-gray)] mb-4">
+          <p className="text-sm text-[var(--color-slate-blue)]">Selected handle: <strong>{username || 'Not set in profile'}</strong></p>
+          <button onClick={doMonitor} disabled={reging} className="mt-3 flex items-center gap-1.5 px-4 py-2.5 rounded-[16px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] text-sm font-medium text-[var(--color-charcoal)] hover:bg-[var(--color-buttermilk)] transition disabled:opacity-50 shadow-[var(--shadow-subtle-3)]">
             {reging ? <Activity size={15} className="icon-spin" /> : <UserPlus size={15} />} Monitor This Handle
           </button>
         </div>
 
-        {status && <div className={`mt-3 p-3 rounded-xl text-sm text-center ${status.t === 'ok' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>{status.m}</div>}
+        {status && <div className={`mt-3 p-3 rounded-[12px] text-sm text-center ${status.t === 'ok' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>{status.m}</div>}
       </section>
 
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-1.5"><Bell size={16} /> Active Watches</h2>
+      <section className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
+        <h2 className="text-lg font-bold text-[var(--color-charcoal)] mb-4 flex items-center gap-1.5"><Bell size={16} /> Active Watches</h2>
         {loading ? (
-          <p className="text-sm text-gray-500">Loading watches...</p>
+          <p className="text-sm text-[var(--color-cool-gray)]">Loading watches...</p>
         ) : users.length > 0 ? (
           <div className="space-y-2">
             {users.map((u) => (
-              <div key={`${u.platform}-${u.username}`} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${u.platform === 'leetcode' ? 'bg-amber-400' : 'bg-red-400'}`} />
-                  <strong className="text-sm text-gray-900">{u.username}</strong>
-                  <span className="text-xs text-gray-400">{pCfg[u.platform]?.label || u.platform}</span>
+              <div key={`${u.platform}-${u.username}`} className="flex items-center justify-between gap-4 p-3 rounded-[12px] bg-[var(--color-buttermilk)] border border-[var(--color-ash-gray)]">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-[16px] ${u.platform === 'leetcode' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                    <strong className="text-sm text-[var(--color-charcoal)]">{u.username}</strong>
+                    <span className="text-xs text-[var(--color-cool-gray)]">{pCfg[u.platform]?.label || u.platform}</span>
+                  </div>
+                  {(u.registered_at || u.expires_at) && (
+                    <p className="mt-1 text-xs text-[var(--color-cool-gray)]">
+                      {u.registered_at ? `Added: ${formatWatchDate(u.registered_at)}` : ''}
+                      {u.registered_at && u.expires_at ? '  |  ' : ''}
+                      {u.expires_at ? `Expires: ${formatWatchDate(u.expires_at)}` : ''}
+                    </p>
+                  )}
                 </div>
                 <span className="text-xs font-semibold text-emerald-500">Watching</span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50">
+          <div className="flex items-center gap-3 p-4 rounded-[12px] border-2 border-dashed border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)]/50">
             <Eye size={18} className="text-gray-300" />
-            <p className="text-sm text-gray-500">No monitored users yet.</p>
+            <p className="text-sm text-[var(--color-cool-gray)]">No monitored users yet.</p>
           </div>
         )}
       </section>

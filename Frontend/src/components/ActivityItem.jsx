@@ -1,5 +1,5 @@
-import React from 'react';
-import { Trophy, Bell, Zap, Mail, Bot, Radio, Clock, GitBranch } from 'lucide-react';
+import React from "react";
+import { Bell, Bot, Clock, Mail, Radio, Trophy, Zap } from "lucide-react";
 
 const GithubIcon = ({ size = 18, className = "" }) => (
   <svg
@@ -17,18 +17,6 @@ const GithubIcon = ({ size = 18, className = "" }) => (
   </svg>
 );
 
-/**
- * ActivityItem — A single activity card in the live feed.
- * 
- * Features:
- *  - Type-based icon and color coding
- *  - Priority-based left accent border
- *  - Unread pulsing dot indicator
- *  - Relative timestamp
- *  - Click to mark as read
- */
-
-// Map activity type → icon component
 const typeIcons = {
   contest: Trophy,
   reminder: Bell,
@@ -39,29 +27,19 @@ const typeIcons = {
   github: GithubIcon,
 };
 
-// Map activity type → icon ring color classes
 const typeColors = {
-  contest: { bg: 'rgba(251,191,36,0.12)', color: '#fbbf24' },
-  reminder: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-  productivity: { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
-  email: { bg: 'rgba(99,102,241,0.12)', color: '#818cf8' },
-  ai: { bg: 'rgba(168,85,247,0.12)', color: '#a855f7' },
-  system: { bg: 'rgba(107,114,128,0.12)', color: '#6b7280' },
-  github: { bg: 'rgba(24,23,23,0.08)', color: '#181717' },
+  contest: { bg: "rgba(250,242,236,1)", color: "#1b1917" },
+  reminder: { bg: "rgba(250,242,236,1)", color: "#1b1917" },
+  productivity: { bg: "rgba(250,242,236,1)", color: "#1b1917" },
+  email: { bg: "rgba(255,255,255,1)", color: "#1b1917" },
+  ai: { bg: "rgba(255,255,255,1)", color: "#1b1917" },
+  system: { bg: "rgba(255,255,255,1)", color: "#1b1917" },
+  github: { bg: "rgba(255,255,255,1)", color: "#1b1917" },
 };
 
-// Map priority → left border color
-const priorityBorders = {
-  info: '#818cf8',
-  success: '#10b981',
-  warning: '#f59e0b',
-  critical: '#ef4444',
-};
-
-// Format relative time
 function timeAgo(unixTs) {
   const seconds = Math.floor(Date.now() / 1000 - unixTs);
-  if (seconds < 10) return 'just now';
+  if (seconds < 10) return "just now";
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -73,90 +51,52 @@ function timeAgo(unixTs) {
 
 const ActivityItem = ({ activity, onMarkRead }) => {
   const Icon = typeIcons[activity.type] || Radio;
-  const colors = typeColors[activity.type] || typeColors.system;
-  const borderColor = priorityBorders[activity.priority] || priorityBorders.info;
+  const tone = typeColors[activity.type] || typeColors.system;
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => !activity.read && onMarkRead?.(activity.id)}
-      className={`animate-slide-in-down`}
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '0.85rem',
-        padding: '0.9rem 1rem',
-        borderRadius: '0.75rem',
-        border: '1px solid',
-        borderColor: activity.read ? 'rgb(229,231,235)' : 'rgb(199,210,254)',
-        borderLeft: `3px solid ${borderColor}`,
-        background: activity.read ? 'rgb(249,250,251)' : 'white',
-        cursor: activity.read ? 'default' : 'pointer',
-        transition: 'all 0.2s ease',
-        position: 'relative',
-      }}
+      className={`relative z-10 w-full rounded-[20px] border p-4 text-left transition ${
+        activity.read
+          ? "border-[var(--color-ash-gray)] bg-[rgba(255,255,255,0.62)]"
+          : "border-[rgba(27,25,23,0.12)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)]"
+      }`}
     >
-      {/* Icon */}
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: '0.625rem',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon size={16} style={{ color: colors.color }} />
-      </div>
+      <div className="flex items-start gap-3">
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[15px] border border-[var(--color-ash-gray)]"
+          style={{ background: tone.bg }}
+        >
+          <Icon size={16} style={{ color: tone.color }} />
+        </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>
-            {activity.title}
-          </span>
-          {!activity.read && (
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                background: '#6366f1',
-                boxShadow: '0 0 6px #6366f1',
-                flexShrink: 0,
-                animation: 'healthPulse 2s ease-in-out infinite',
-              }}
-            />
-          )}
-        </div>
-        <p style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.45, margin: 0 }}>
-          {activity.message}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.35rem' }}>
-          <Clock size={11} style={{ color: '#9ca3af' }} />
-          <span style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500 }}>
-            {timeAgo(activity.created_at)}
-          </span>
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              color: colors.color,
-              marginLeft: '0.5rem',
-              padding: '0.1rem 0.4rem',
-              borderRadius: '999px',
-              background: colors.bg,
-            }}
-          >
-            {activity.type}
-          </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-[var(--color-charcoal)]">
+              {activity.title}
+            </span>
+            {!activity.read && (
+              <span className="h-2 w-2 rounded-full bg-[var(--color-field-green)] shadow-[0_0_8px_rgba(43,62,167,0.35)]" />
+            )}
+          </div>
+
+          <p className="mt-1 text-sm leading-6 text-[var(--color-cool-gray)]">
+            {activity.message}
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-cool-gray)]">
+              <Clock size={11} />
+              {timeAgo(activity.created_at)}
+            </span>
+            <span className="rounded-full border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+              {activity.type}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 

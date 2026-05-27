@@ -31,24 +31,24 @@ const Contests = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col gap-5 animate-fade-in-up">
-      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <section className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <span className="flex items-center gap-1 text-xs font-bold text-brand-500 uppercase tracking-wider">
+            <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-charcoal)] uppercase tracking-wider">
               <Trophy size={12} /> Contest Arena
             </span>
-            <h1 className="text-2xl font-bold text-gray-900 mt-1">All Live Contests</h1>
-            <p className="text-sm text-gray-500 mt-1">Track upcoming LeetCode and CodeChef contests in one place.</p>
+            <h1 className="text-2xl font-bold text-[var(--color-charcoal)] mt-1">All Live Contests</h1>
+            <p className="text-sm text-[var(--color-cool-gray)] mt-1">Track upcoming LeetCode and CodeChef contests in one place.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/dashboard" className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors no-underline">
+            <Link to="/dashboard" className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] text-sm font-medium text-[var(--color-charcoal)] hover:bg-[var(--color-buttermilk)] transition-colors no-underline">
               <ArrowLeft size={15} /> Back to Dashboard
             </Link>
             <button
               type="button"
               onClick={() => loadContests(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] text-sm font-medium text-[var(--color-charcoal)] hover:bg-[var(--color-buttermilk)] transition-colors disabled:opacity-60"
             >
               <RefreshCw size={15} className={refreshing ? 'icon-spin' : ''} /> Refresh
             </button>
@@ -57,11 +57,11 @@ const Contests = () => {
       </section>
 
       {error && (
-        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm text-center">{error}</div>
+        <div className="p-3 rounded-[12px] bg-red-50 border border-red-200 text-red-600 text-sm text-center">{error}</div>
       )}
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-500 text-sm">
+        <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-8 text-center text-[var(--color-cool-gray)] text-sm">
           Loading contests...
         </div>
       ) : contests.length > 0 ? (
@@ -71,7 +71,7 @@ const Contests = () => {
           ))}
         </section>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-500 text-sm">
+        <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-8 text-center text-[var(--color-cool-gray)] text-sm">
           No contests available right now.
         </div>
       )}

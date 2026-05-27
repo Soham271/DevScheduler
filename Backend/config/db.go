@@ -12,6 +12,7 @@ import (
 
 var MongoDB *mongo.Client
 var UserCollection *mongo.Collection
+var MonitoringCollection *mongo.Collection
 
 func ConnectMongoDB() {
 	mongoURI := os.Getenv("MONGO_URI")
@@ -35,6 +36,7 @@ func ConnectMongoDB() {
 
 	MongoDB = client
 	UserCollection = client.Database("devflow").Collection("users")
+	MonitoringCollection = client.Database("devflow").Collection("monitored_registrations")
 	log.Println("✅ Successfully connected to MongoDB")
 }
 

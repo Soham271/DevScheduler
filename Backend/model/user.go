@@ -54,3 +54,12 @@ type User struct {
 	GithubUsername     string    `json:"github_username" bson:"github_username"`
 	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }
+
+// MonitoredRegistration stores a watched handle with a one-month expiry window.
+type MonitoredRegistration struct {
+	Email        string    `json:"email" bson:"email"`
+	Platform     string    `json:"platform" bson:"platform"`
+	Username     string    `json:"username" bson:"username"`
+	RegisteredAt time.Time `json:"registered_at" bson:"registered_at"`
+	ExpiresAt    time.Time `json:"expires_at" bson:"expires_at"`
+}

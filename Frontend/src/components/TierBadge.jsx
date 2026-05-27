@@ -1,24 +1,33 @@
-import React from 'react';
+import React from "react";
 
 const cfg = {
-  beginner: { label: 'Beginner', emoji: '🌱', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-  intermediate: { label: 'Intermediate', emoji: '⚡', bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700' },
-  advanced: { label: 'Advanced', emoji: '🏆', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
-  low: { label: 'Low', emoji: '📈', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-  medium: { label: 'Medium', emoji: '🎯', bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700' },
-  high: { label: 'High', emoji: '🌟', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  beginner: { label: "Beginner", emoji: "Seed", tone: "rgba(152,148,168,0.12)" },
+  intermediate: { label: "Intermediate", emoji: "Bolt", tone: "rgba(152,148,168,0.18)" },
+  advanced: { label: "Advanced", emoji: "Crown", tone: "rgba(250,242,236,1)" },
+  low: { label: "Low", emoji: "Trend", tone: "rgba(152,148,168,0.12)" },
+  medium: { label: "Medium", emoji: "Target", tone: "rgba(152,148,168,0.18)" },
+  high: { label: "High", emoji: "Star", tone: "rgba(250,242,236,1)" },
 };
 
-const TierBadge = ({ tier, type = 'performance' }) => {
+const TierBadge = ({ tier, type = "performance" }) => {
   if (!tier) return null;
-  const c = cfg[tier.toLowerCase()] || { label: tier, emoji: '•', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700' };
+  const c = cfg[tier.toLowerCase()] || {
+    label: tier,
+    emoji: "Tier",
+    tone: "rgba(255,255,255,0.72)",
+  };
+
   return (
-    <div className={`${c.bg} ${c.border} border rounded-xl px-4 py-3 flex items-center gap-3 hover:-translate-y-0.5 transition-transform`}>
-      <span className="text-2xl">{c.emoji}</span>
-      <div>
-        <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-400">{type === 'performance' ? 'Level' : 'Rating'}</span>
-        <strong className={`text-sm font-bold ${c.text}`}>{c.label}</strong>
-      </div>
+    <div
+      className="rounded-[18px] border border-[var(--color-ash-gray)] px-4 py-3"
+      style={{ background: c.tone }}
+    >
+      <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+        {type === "performance" ? "Level" : "Rating"}
+      </span>
+      <strong className="mt-2 block text-sm font-semibold text-[var(--color-charcoal)]">
+        {c.label}
+      </strong>
     </div>
   );
 };

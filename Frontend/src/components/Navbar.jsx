@@ -1,41 +1,40 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  CodeSquare, LogOut, UserCircle2, Settings, ChevronDown,
-  ChevronRight, Code2, ChefHat, BarChart2, BookOpen, GitBranch, Activity, Trophy
-} from 'lucide-react';
-import { getUserEmail, clearSession } from '../utils/auth';
+  Activity,
+  BookOpen,
+  ChefHat,
+  ChevronDown,
+  ChevronRight,
+  Code2,
+  CodeSquare,
+  GitBranch,
+  LogOut,
+  Settings,
+  UserCircle2,
+} from "lucide-react";
+import { clearSession, getUserEmail } from "../utils/auth";
 
 const PlatformDropdownItem = ({ platform, isActive, onClick }) => {
   const Icon = platform.icon;
-  const isItemActive = isActive(platform.path);
+  const active = isActive(platform.path);
 
   return (
     <Link
       to={platform.path}
       onClick={onClick}
-      className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 no-underline outline-none ${isItemActive ? 'bg-brand-50/60 shadow-sm ring-1 ring-brand-100/50' : 'hover:bg-gray-50/70'
-        }`}
+      className={`flex items-center gap-3 rounded-[16px] border px-3 py-3 no-underline transition ${
+        active
+          ? "border-[var(--color-charcoal)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)]"
+          : "border-transparent bg-transparent text-[var(--color-cool-gray)] hover:border-[var(--color-ash-gray)] hover:bg-[var(--color-buttermilk)] hover:text-[var(--color-charcoal)]"
+      }`}
     >
-      {isItemActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-50/50 to-white/30 opacity-50 rounded-xl" />
-      )}
-
-      <div className={`relative flex items-center justify-center w-8 h-8 rounded-lg bg-white shadow-sm border border-gray-100/80 transition-transform duration-200 group-hover:scale-110 ${isItemActive ? 'ring-2 ring-brand-100/50' : ''}`}>
-        <Icon size={16} className={`${platform.color} relative z-10`} />
+      <div className="flex h-9 w-9 items-center justify-center rounded-[14px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)]">
+        <Icon size={16} className={platform.color} />
       </div>
-
-      <div className="flex flex-col flex-1 relative z-10">
-        <span className={`text-sm font-semibold transition-colors ${isItemActive ? 'text-gray-900' : 'text-gray-700 group-hover:text-gray-900'}`}>
-          {platform.name}
-        </span>
-      </div>
-
-      <div className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white transition-all duration-200 shadow-sm border border-gray-100 ${isItemActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
-        }`}>
-        <ChevronRight size={12} className="text-gray-400" />
-      </div>
+      <span className="flex-1 text-sm font-medium">{platform.name}</span>
+      <ChevronRight size={14} className="text-[var(--color-slate-blue)]" />
     </Link>
   );
 };
@@ -44,67 +43,58 @@ const PlatformsDropdown = ({ isActive }) => {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef(null);
 
+  const platforms = [
+    { name: "LeetCode", path: "/platforms/leetcode", icon: Code2, color: "text-amber-500" },
+    { name: "Codeforces", path: "/platforms/codeforces", icon: Activity, color: "text-slate-500" },
+    { name: "CodeChef", path: "/platforms/codechef", icon: ChefHat, color: "text-rose-700" },
+    { name: "GeeksForGeeks", path: "/platforms/gfg", icon: BookOpen, color: "text-emerald-600" },
+    { name: "GitHub", path: "/platforms/github", icon: GitBranch, color: "text-slate-700" },
+  ];
+
+  const isAnyPlatformActive = platforms.some((p) => isActive(p.path)) || isActive("/platforms");
+
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsOpen(true);
   };
 
   const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 150);
+    timeoutRef.current = setTimeout(() => setIsOpen(false), 150);
   };
 
-  const platforms = [
-    { name: 'LeetCode', path: '/platforms/leetcode', icon: Code2, color: 'text-orange-500' },
-    { name: 'Codeforces', path: '/platforms/codeforces', icon: Activity, color: 'text-blue-500' },
-    { name: 'CodeChef', path: '/platforms/codechef', icon: ChefHat, color: 'text-amber-700' },
-    { name: 'GeeksForGeeks', path: '/platforms/gfg', icon: BookOpen, color: 'text-green-600' },
-    { name: 'GitHub', path: '/platforms/github', icon: GitBranch, color: 'text-slate-700' },
-  ];
-
-  const isAnyPlatformActive = platforms.some(p => isActive(p.path)) || isActive('/platforms');
-
   return (
-    <div
-      className="relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <Link
         to="/platforms"
-        className={`relative flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors no-underline group outline-none rounded-lg ${isAnyPlatformActive ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
-          }`}
+        className={`inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium no-underline transition ${
+          isAnyPlatformActive
+            ? "bg-[var(--color-canvas-white)] text-[var(--color-charcoal)] shadow-[var(--shadow-subtle-3)]"
+            : "text-[var(--color-cool-gray)] hover:text-[var(--color-charcoal)]"
+        }`}
         onClick={() => setIsOpen(false)}
       >
         Platforms
-        <ChevronDown size={14} className={`transition-transform duration-200 text-gray-400 group-hover:text-gray-600 ${isOpen ? 'rotate-180' : ''}`} />
-        {isAnyPlatformActive && (
-          <motion.div
-            layoutId="navbar-active"
-            className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full"
-            style={{ background: 'linear-gradient(to right, #6366f1, #8b5cf6)' }}
-            transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          />
-        )}
+        <ChevronDown
+          size={14}
+          className={`text-[var(--color-slate-blue)] transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </Link>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            initial={{ opacity: 0, y: 10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-1/2 -translate-x-1/2 mt-2 w-[240px] rounded-2xl p-2 origin-top"
-            style={{
-              background: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-            }}
+            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute left-1/2 mt-3 w-[270px] -translate-x-1/2 rounded-[22px] border border-[rgba(27,25,23,0.08)] bg-[rgba(255,255,255,0.96)] p-2 shadow-[0_20px_40px_rgba(27,25,23,0.08)]"
           >
-            <div className="flex flex-col gap-1">
+            <div className="mb-2 px-3 pt-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+                Platforms
+              </p>
+            </div>
+            <div className="space-y-1">
               {platforms.map((platform) => (
                 <PlatformDropdownItem
                   key={platform.name}
@@ -125,205 +115,159 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = getUserEmail();
-  const initial = email ? email.charAt(0).toUpperCase() : '?';
-  const username = email ? email.split('@')[0] : 'Developer';
+  const initial = email ? email.charAt(0).toUpperCase() : "?";
+  const username = email ? email.split("@")[0] : "Developer";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+
+  const navLinks = [
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Contests", path: "/contests" },
+    { name: "Schedule-Mail", path: "/schedule" },
+    { name: "Watch", path: "/watch" },
+  ];
+
+  const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
     setMenuOpen(false);
     clearSession();
     setIsAuthenticated(false);
-    navigate('/login');
+    navigate("/login");
   };
-
-  const isActive = (path) => location.pathname === path;
 
   useEffect(() => {
     const onOutsideClick = (event) => {
       if (!menuRef.current?.contains(event.target)) setMenuOpen(false);
     };
     const onEscape = (event) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key === "Escape") setMenuOpen(false);
     };
-    document.addEventListener('mousedown', onOutsideClick);
-    document.addEventListener('keydown', onEscape);
+    document.addEventListener("mousedown", onOutsideClick);
+    document.addEventListener("keydown", onEscape);
     return () => {
-      document.removeEventListener('mousedown', onOutsideClick);
-      document.removeEventListener('keydown', onEscape);
+      document.removeEventListener("mousedown", onOutsideClick);
+      document.removeEventListener("keydown", onEscape);
     };
   }, []);
 
-  const navLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Contests', path: '/contests' },
-    { name: 'Schedule-Mail', path: '/schedule' },
-    { name: 'Watch', path: '/watch' }
-  ];
-
   return (
     <motion.nav
-      initial={{ y: -20, opacity: 0 }}
+      initial={{ y: -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-50"
-      style={{
-        background: 'rgba(255,255,255,0.65)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-        borderBottom: '1px solid rgba(226,232,240,0.5)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 4px 24px rgba(0,0,0,0.01)',
-      }}
+      transition={{ duration: 0.45 }}
+      className="sticky top-0 z-50 border-b border-[rgba(27,25,23,0.08)] bg-[rgba(250,242,236,0.9)] backdrop-blur-md"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-
-        <Link to="/" className="flex items-center gap-2 no-underline group relative outline-none w-[180px]">
-          <motion.div
-            whileHover={{ scale: 1.04 }}
-            className="flex items-center gap-3"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-brand-500 blur-lg opacity-25 group-hover:opacity-45 transition-opacity duration-500 rounded-full"></div>
-              <div 
-                className="relative z-10 w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ 
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 2px 8px rgba(99,102,241,0.3)',
-                }}
-              >
-                <CodeSquare className="text-white" size={18} strokeWidth={2.5} />
-              </div>
-            </div>
-            <span 
-              className="text-[1.3rem] font-bold bg-clip-text text-transparent tracking-tight"
-              style={{ 
-                backgroundImage: 'linear-gradient(135deg, #1e1b4b, #4338ca)',
-                fontFamily: '"Space Grotesk", "Inter", sans-serif',
-              }}
-            >
-              DevFlow
+      <div className="mx-auto flex h-[74px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-3 no-underline">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[16px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)]">
+            <CodeSquare className="text-[var(--color-charcoal)]" size={18} strokeWidth={2.4} />
+          </div>
+          <div>
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-slate-blue)]">
+              Developer workspace
             </span>
-          </motion.div>
+            <span
+              className="block text-[1.35rem] leading-none text-[var(--color-charcoal)]"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              DevScheduler
+            </span>
+          </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-0.5 justify-center flex-1">
+        <div className="hidden flex-1 justify-center md:flex">
           {isAuthenticated && (
-            <>
+            <div className="flex items-center gap-1 rounded-full border border-[rgba(27,25,23,0.08)] bg-[rgba(255,255,255,0.72)] p-1 shadow-[var(--shadow-subtle-3)]">
               <Link
                 to="/dashboard"
-                className={`relative px-4 py-2 text-sm font-medium transition-colors no-underline group outline-none rounded-lg ${isActive('/dashboard') ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
-                  }`}
+                className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition ${
+                  isActive("/dashboard")
+                    ? "bg-[var(--color-canvas-white)] text-[var(--color-charcoal)] shadow-[var(--shadow-subtle-3)]"
+                    : "text-[var(--color-cool-gray)] hover:text-[var(--color-charcoal)]"
+                }`}
               >
                 Dashboard
-                {isActive('/dashboard') && (
-                  <motion.div
-                    layoutId="navbar-active"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full"
-                    style={{ background: 'linear-gradient(to right, #6366f1, #8b5cf6)' }}
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  />
-                )}
               </Link>
-
               <PlatformsDropdown isActive={isActive} />
-
-              {navLinks.slice(1).map((link) => {
-                const active = isActive(link.path);
-                return (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    className={`relative px-4 py-2 text-sm font-medium transition-colors no-underline group outline-none rounded-lg ${active ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
-                      }`}
-                  >
-                    {link.name}
-                    {active && (
-                      <motion.div
-                        layoutId="navbar-active"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full"
-                        style={{ background: 'linear-gradient(to right, #6366f1, #8b5cf6)' }}
-                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      />
-                    )}
-                  </Link>
-                )
-              })}
-            </>
+              {navLinks.slice(1).map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition ${
+                    isActive(link.path)
+                      ? "bg-[var(--color-canvas-white)] text-[var(--color-charcoal)] shadow-[var(--shadow-subtle-3)]"
+                      : "text-[var(--color-cool-gray)] hover:text-[var(--color-charcoal)]"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end w-[180px]">
+        <div className="flex items-center justify-end">
           {isAuthenticated ? (
             <div className="relative" ref={menuRef}>
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
+              <button
+                type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
-                className="flex items-center justify-center w-10 h-10 rounded-full text-white font-semibold relative group outline-none"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 2px 12px rgba(99,102,241,0.3), 0 0 0 3px rgba(255,255,255,0.8)',
-                  transition: 'box-shadow 0.3s ease',
-                }}
+                className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-[var(--color-charcoal)] bg-[var(--color-charcoal)] text-sm font-semibold text-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)]"
               >
-                <span className="relative z-10 text-sm tracking-wide font-bold">{initial}</span>
-              </motion.button>
+                {initial}
+              </button>
 
               <AnimatePresence>
                 {menuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                    initial={{ opacity: 0, y: 12, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute right-0 mt-3 w-60 rounded-2xl p-1.5 origin-top-right"
-                    style={{
-                      background: 'rgba(255,255,255,0.9)',
-                      backdropFilter: 'blur(24px) saturate(180%)',
-                      border: '1px solid rgba(226,232,240,0.6)',
-                      boxShadow: '0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-                    }}
+                    exit={{ opacity: 0, y: 12, scale: 0.97 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute right-0 mt-3 w-64 rounded-[22px] border border-[rgba(27,25,23,0.08)] bg-[rgba(255,255,255,0.98)] p-2 shadow-[0_20px_40px_rgba(27,25,23,0.08)]"
                   >
-                    <div className="px-3 py-2.5 mb-1">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{username}</p>
-                      <p className="text-xs text-gray-400 truncate mt-0.5">{email}</p>
+                    <div className="rounded-[18px] bg-[var(--color-buttermilk)] px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-[var(--color-charcoal)]">
+                        {username}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-[var(--color-cool-gray)]">{email}</p>
                     </div>
-                    <div className="h-px bg-gray-100/80 my-1 mx-2"></div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        navigate('/profile');
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50/80 rounded-xl transition-colors outline-none"
-                    >
-                      <UserCircle2 size={16} />
-                      Profile
-                    </button>
+                    <div className="mt-2 space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          navigate("/profile");
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-[16px] px-3 py-3 text-sm font-medium text-[var(--color-cool-gray)] transition hover:bg-[var(--color-buttermilk)] hover:text-[var(--color-charcoal)]"
+                      >
+                        <UserCircle2 size={16} />
+                        Profile
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        navigate('/settings');
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50/80 rounded-xl transition-colors outline-none"
-                    >
-                      <Settings size={16} />
-                      Settings
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          navigate("/settings");
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-[16px] px-3 py-3 text-sm font-medium text-[var(--color-cool-gray)] transition hover:bg-[var(--color-buttermilk)] hover:text-[var(--color-charcoal)]"
+                      >
+                        <Settings size={16} />
+                        Settings
+                      </button>
 
-                    <div className="h-px bg-gray-100/80 my-1 mx-2"></div>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-rose-500 hover:text-rose-600 hover:bg-rose-50/80 rounded-xl transition-colors outline-none"
-                    >
-                      <LogOut size={16} />
-                      Logout
-                    </button>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 rounded-[16px] px-3 py-3 text-sm font-medium text-[#be123c] transition hover:bg-[#fff1f2]"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -332,17 +276,13 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors no-underline"
+                className="text-sm font-medium text-[var(--color-slate-blue)] no-underline transition hover:text-[var(--color-charcoal)]"
               >
                 Log in
               </Link>
               <Link
                 to="/signup"
-                className="text-sm font-semibold px-5 py-2 rounded-full text-white no-underline transition-all duration-300"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 2px 12px rgba(99,102,241,0.25)',
-                }}
+                className="rounded-[16px] border border-[var(--color-ink-black)] bg-[var(--color-canvas-white)] px-5 py-2.5 text-sm font-semibold text-[var(--color-ink-black)] no-underline shadow-[var(--shadow-subtle-3)] transition hover:bg-[var(--color-buttermilk)]"
               >
                 Sign up
               </Link>

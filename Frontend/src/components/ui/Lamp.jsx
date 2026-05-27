@@ -4,207 +4,65 @@ import { motion } from "framer-motion";
 export const LampContainer = ({ children, className = "" }) => {
   return (
     <div
-      className={className}
-      style={{
-        position: "relative",
-        display: "flex",
-        minHeight: "55vh",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        background: "#f8fafc",
-        width: "100%",
-        zIndex: 0,
-      }}
+      className={`relative flex min-h-[85vh] w-full flex-col overflow-hidden bg-[var(--color-buttermilk)] ${className}`}
     >
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          width: "100%",
-          flex: "1 1 0%",
-          transform: "scaleY(1.25)",
-          alignItems: "center",
-          justifyContent: "center",
-          isolation: "isolate",
-          zIndex: 0,
-        }}
-      >
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 flex h-[20rem] scale-y-125 items-start justify-center isolate">
         <motion.div
-          initial={{ opacity: 0.5, width: "15rem" }}
-          whileInView={{ opacity: 1, width: "40rem" }}
+          initial={{ opacity: 0.5, width: "8rem" }}
+          whileInView={{ opacity: 1, width: "24rem" }}
           transition={{
             delay: 0.3,
             duration: 0.8,
             ease: "easeInOut",
           }}
-          style={{
-            position: "absolute",
-            inset: "auto auto 50% auto",
-            right: "50%",
-            zIndex: 20,
-            height: "20rem",
-            backgroundImage: "conic-gradient(from 70deg at center bottom, #021d29ff, transparent, transparent)",
-            color: "transparent",
-          }}
+          className="absolute right-1/2 top-24 z-20 h-80 bg-[conic-gradient(from_70deg_at_center_bottom,rgba(27,25,23,0.03),transparent,transparent)] text-transparent"
         >
-          <div
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              bottom: 0,
-              left: 0,
-              zIndex: 20,
-              background: "#f8fafc",
-              maskImage: "linear-gradient(to top, white, transparent)",
-              WebkitMaskImage: "linear-gradient(to top, white, transparent)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              bottom: 0,
-              left: 0,
-              zIndex: 20,
-              background: "#f8fafc",
-              maskImage: "linear-gradient(to left, white, transparent)",
-              WebkitMaskImage: "linear-gradient(to left, white, transparent)",
-            }}
-          />
+          <div className="absolute inset-0 z-20 bg-[var(--color-buttermilk)] [mask-image:linear-gradient(to_top,white,transparent)] [-webkit-mask-image:linear-gradient(to_top,white,transparent)]" />
+          <div className="absolute inset-0 z-20 bg-[var(--color-buttermilk)] [mask-image:linear-gradient(to_left,white,transparent)] [-webkit-mask-image:linear-gradient(to_left,white,transparent)]" />
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0.5, width: "15rem" }}
-          whileInView={{ opacity: 1, width: "40rem" }}
+          initial={{ opacity: 0.5, width: "8rem" }}
+          whileInView={{ opacity: 1, width: "24rem" }}
           transition={{
             delay: 0.3,
             duration: 0.8,
             ease: "easeInOut",
           }}
-          style={{
-            position: "absolute",
-            inset: "auto auto 50% auto",
-            left: "50%",
-            zIndex: 20,
-            height: "20rem",
-            backgroundImage: "conic-gradient(from 290deg at center bottom, transparent, transparent, #0ea5e9)",
-            color: "transparent",
-          }}
+          className="absolute left-1/2 top-24 z-20 h-80 bg-[conic-gradient(from_290deg_at_center_bottom,transparent,transparent,rgba(27,25,23,0.03))] text-transparent"
         >
-          <div
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              bottom: 0,
-              left: 0,
-              zIndex: 20,
-              background: "#f8fafc",
-              maskImage: "linear-gradient(to top, white, transparent)",
-              WebkitMaskImage: "linear-gradient(to top, white, transparent)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              bottom: 0,
-              left: 0,
-              zIndex: 20,
-              background: "#f8fafc",
-              maskImage: "linear-gradient(to right, white, transparent)",
-              WebkitMaskImage: "linear-gradient(to right, white, transparent)",
-            }}
-          />
+          <div className="absolute inset-0 z-20 bg-[var(--color-buttermilk)] [mask-image:linear-gradient(to_top,white,transparent)] [-webkit-mask-image:linear-gradient(to_top,white,transparent)]" />
+          <div className="absolute inset-0 z-20 bg-[var(--color-buttermilk)] [mask-image:linear-gradient(to_right,white,transparent)] [-webkit-mask-image:linear-gradient(to_right,white,transparent)]" />
         </motion.div>
 
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            height: "50%",
-            width: "100%",
-            background: "#f8fafc",
-            zIndex: 40,
-          }}
-        />
+        <div className="absolute inset-x-0 top-1/2 z-40 h-1/2 bg-[var(--color-buttermilk)]" />
 
-        <div
-          style={{
-            position: "absolute",
-            inset: "auto auto 50% auto",
-            zIndex: 50,
-            height: "0.5rem",
-            width: "100%",
-            transform: "translateY(50%)",
-            background: "transparent",
-            boxShadow: "0 0 120px rgba(14, 165, 233, 0.4)",
-            opacity: 0.5,
+        <div className="absolute inset-x-0 top-1/2 z-50 h-2 translate-y-1/2 bg-transparent opacity-30 shadow-[0_0_80px_rgba(27,25,23,0.06)]" />
+
+        <motion.div
+          initial={{ width: "6rem" }}
+          whileInView={{ width: "16rem" }}
+          transition={{
+            delay: 0.3,
+            duration: 0.8,
+            ease: "easeInOut",
           }}
+          className="absolute top-1/2 z-30 h-9 translate-y-1/2 rounded-full bg-transparent blur-[20px] shadow-[0_0_40px_10px_rgba(27,25,23,0.03)]"
         />
 
         <motion.div
           initial={{ width: "8rem" }}
-          whileInView={{ width: "24rem" }}
+          whileInView={{ width: "30rem" }}
           transition={{
             delay: 0.3,
             duration: 0.8,
             ease: "easeInOut",
           }}
-          style={{
-            position: "absolute",
-            inset: "auto auto 50% auto",
-            zIndex: 30,
-            height: "36px",
-            transform: "translateY(50%)",
-            background: "transparent",
-            boxShadow: "0 0 60px 20px rgba(14, 165, 233, 0.5)",
-            borderRadius: "50%",
-            filter: "blur(20px)",
-          }}
-        />
-
-        <motion.div
-          initial={{ width: "15rem" }}
-          whileInView={{ width: "50rem" }}
-          transition={{
-            delay: 0.3,
-            duration: 0.8,
-            ease: "easeInOut",
-          }}
-          style={{
-            position: "absolute",
-            inset: "auto auto 50% auto",
-            zIndex: 50,
-            height: "5px",
-            transform: "translateY(50%)",
-            background: "linear-gradient(90deg, transparent, #11729bff, transparent)",
-          }}
+          className="absolute top-1/2 z-50 h-[3px] max-w-full translate-y-1/2 bg-[linear-gradient(90deg,transparent,rgba(27,25,23,0.12),transparent)]"
         />
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, 0)",
-          zIndex: 50,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          paddingLeft: "1.5rem",
-          paddingRight: "1.5rem",
-          marginTop: "1.5rem",
-        }}
-      >
-        {children}
-      </div>
+      <div className="relative z-10 flex w-full flex-1 flex-col">{children}</div>
     </div>
   );
 };

@@ -101,9 +101,9 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(255, 255, 255, 0.6)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "rgba(250, 242, 236, 0.7)", // Buttermilk tinted
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
             padding: "1rem",
           }}
         >
@@ -117,13 +117,11 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               position: "relative",
               width: "100%",
               maxWidth: "420px",
-              background:
-                "linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95))",
-              border: "1px solid rgba(226, 232, 240, 0.8)",
-              borderRadius: "24px",
+              background: "var(--color-canvas-white)",
+              border: "1px solid var(--color-ash-gray)",
+              borderRadius: "20px",
               padding: "2rem",
-              boxShadow:
-                "0 25px 80px rgba(0,0,0,0.08), 0 0 60px rgba(14, 165, 233, 0.05), inset 0 1px 0 rgba(255,255,255,1)",
+              boxShadow: "var(--shadow-subtle-3)",
             }}
           >
             {/* Close button */}
@@ -133,8 +131,8 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 position: "absolute",
                 top: "1rem",
                 right: "1rem",
-                background: "rgba(15, 23, 42, 0.04)",
-                border: "1px solid rgba(15, 23, 42, 0.08)",
+                background: "var(--color-buttermilk)",
+                border: "1px solid var(--color-ash-gray)",
                 borderRadius: "12px",
                 width: "36px",
                 height: "36px",
@@ -142,16 +140,16 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                color: "rgba(15, 23, 42, 0.5)",
+                color: "var(--color-cool-gray)",
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.target.style.color = "#0f172a";
-                e.target.style.background = "rgba(15, 23, 42, 0.08)";
+                e.target.style.color = "var(--color-charcoal)";
+                e.target.style.background = "var(--color-ash-gray)";
               }}
               onMouseLeave={(e) => {
-                e.target.style.color = "rgba(15, 23, 42, 0.5)";
-                e.target.style.background = "rgba(15, 23, 42, 0.04)";
+                e.target.style.color = "var(--color-cool-gray)";
+                e.target.style.background = "var(--color-buttermilk)";
               }}
             >
               <X size={18} />
@@ -163,7 +161,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 display: "flex",
                 gap: "0.25rem",
                 marginBottom: "1.75rem",
-                background: "rgba(15, 23, 42, 0.04)",
+                background: "var(--color-ash-gray)",
                 borderRadius: "14px",
                 padding: "4px",
               }}
@@ -186,13 +184,13 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                     transition: "all 0.25s ease",
                     background:
                       mode === m
-                        ? "#ffffff"
+                        ? "var(--color-buttermilk)"
                         : "transparent",
                     color:
-                      mode === m ? "#0f172a" : "rgba(71, 85, 105, 0.7)",
+                      mode === m ? "var(--color-charcoal)" : "var(--color-slate-blue)",
                     boxShadow:
                       mode === m
-                        ? "0 4px 15px rgba(0, 0, 0, 0.05)"
+                        ? "var(--shadow-subtle-3)"
                         : "none",
                   }}
                 >
@@ -232,7 +230,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                     display: "block",
                     fontSize: "0.78rem",
                     fontWeight: 600,
-                    color: "rgba(71, 85, 105, 0.8)",
+                    color: "var(--color-slate-blue)",
                     marginBottom: "0.4rem",
                     letterSpacing: "0.03em",
                     textTransform: "uppercase",
@@ -250,23 +248,21 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                   style={{
                     width: "100%",
                     padding: "0.8rem 1rem",
-                    background: "rgba(241, 245, 249, 0.6)",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
-                    borderRadius: "12px",
-                    color: "#0f172a",
+                    background: "transparent",
+                    border: "1px solid var(--color-charcoal)",
+                    borderRadius: "0",
+                    color: "var(--color-charcoal)",
                     fontSize: "0.95rem",
                     outline: "none",
-                    transition: "all 0.25s ease",
+                    transition: "all 0.2s ease",
                     boxSizing: "border-box",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#0ea5e9";
-                    e.target.style.background = "#ffffff";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(14, 165, 233, 0.1)";
+                    e.target.style.borderColor = "var(--color-field-green)";
+                    e.target.style.boxShadow = "inset 0 0 0 1px var(--color-field-green)";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(226, 232, 240, 0.8)";
-                    e.target.style.background = "rgba(241, 245, 249, 0.6)";
+                    e.target.style.borderColor = "var(--color-charcoal)";
                     e.target.style.boxShadow = "none";
                   }}
                 />
@@ -278,7 +274,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                     display: "block",
                     fontSize: "0.78rem",
                     fontWeight: 600,
-                    color: "rgba(71, 85, 105, 0.8)",
+                    color: "var(--color-slate-blue)",
                     marginBottom: "0.4rem",
                     letterSpacing: "0.03em",
                     textTransform: "uppercase",
@@ -299,23 +295,21 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                   style={{
                     width: "100%",
                     padding: "0.8rem 1rem",
-                    background: "rgba(241, 245, 249, 0.6)",
-                    border: "1px solid rgba(226, 232, 240, 0.8)",
-                    borderRadius: "12px",
-                    color: "#0f172a",
+                    background: "transparent",
+                    border: "1px solid var(--color-charcoal)",
+                    borderRadius: "0",
+                    color: "var(--color-charcoal)",
                     fontSize: "0.95rem",
                     outline: "none",
-                    transition: "all 0.25s ease",
+                    transition: "all 0.2s ease",
                     boxSizing: "border-box",
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#0ea5e9";
-                    e.target.style.background = "#ffffff";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(14, 165, 233, 0.1)";
+                    e.target.style.borderColor = "var(--color-field-green)";
+                    e.target.style.boxShadow = "inset 0 0 0 1px var(--color-field-green)";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "rgba(226, 232, 240, 0.8)";
-                    e.target.style.background = "rgba(241, 245, 249, 0.6)";
+                    e.target.style.borderColor = "var(--color-charcoal)";
                     e.target.style.boxShadow = "none";
                   }}
                 />
@@ -335,7 +329,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                         display: "block",
                         fontSize: "0.78rem",
                         fontWeight: 600,
-                        color: "rgba(71, 85, 105, 0.8)",
+                        color: "var(--color-slate-blue)",
                         marginBottom: "0.4rem",
                         letterSpacing: "0.03em",
                         textTransform: "uppercase",
@@ -354,23 +348,21 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                       style={{
                         width: "100%",
                         padding: "0.8rem 1rem",
-                        background: "rgba(241, 245, 249, 0.6)",
-                        border: "1px solid rgba(226, 232, 240, 0.8)",
-                        borderRadius: "12px",
-                        color: "#0f172a",
+                        background: "transparent",
+                        border: "1px solid var(--color-charcoal)",
+                        borderRadius: "0",
+                        color: "var(--color-charcoal)",
                         fontSize: "0.95rem",
                         outline: "none",
-                        transition: "all 0.25s ease",
+                        transition: "all 0.2s ease",
                         boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#0ea5e9";
-                        e.target.style.background = "#ffffff";
-                        e.target.style.boxShadow = "0 0 0 3px rgba(14, 165, 233, 0.1)";
+                        e.target.style.borderColor = "var(--color-field-green)";
+                        e.target.style.boxShadow = "inset 0 0 0 1px var(--color-field-green)";
                       }}
                       onBlur={(e) => {
-                        e.target.style.borderColor = "rgba(226, 232, 240, 0.8)";
-                        e.target.style.background = "rgba(241, 245, 249, 0.6)";
+                        e.target.style.borderColor = "var(--color-charcoal)";
                         e.target.style.boxShadow = "none";
                       }}
                     />
@@ -388,16 +380,16 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                   width: "100%",
                   padding: "0.85rem",
                   border: "none",
-                  borderRadius: "14px",
-                  background: "linear-gradient(135deg, #11729b, #0ea5e9)",
-                  color: "#fff",
+                  borderRadius: "16px",
+                  background: "var(--color-buttermilk)",
+                  color: "var(--color-ink-black)",
+                  border: "1px solid var(--color-ink-black)",
                   fontSize: "0.95rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: isLoading ? "not-allowed" : "pointer",
                   opacity: isLoading ? 0.7 : 1,
-                  boxShadow: "0 4px 20px rgba(14, 165, 233, 0.3)",
-                  transition: "all 0.25s ease",
-                  marginTop: "0.25rem",
+                  boxShadow: "var(--shadow-subtle-3)",
+                  transition: "all 0.2s ease",
                 }}
               >
                 {isLoading
@@ -423,14 +415,13 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 style={{
                   flex: 1,
                   height: "1px",
-                  background:
-                    "linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.1), transparent)",
+                  background: "var(--color-ash-gray)",
                 }}
               />
               <span
                 style={{
                   fontSize: "0.7rem",
-                  color: "rgba(100, 116, 139, 0.8)",
+                  color: "var(--color-cool-gray)",
                   textTransform: "uppercase",
                   letterSpacing: "0.1em",
                   fontWeight: 600,
@@ -442,8 +433,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 style={{
                   flex: 1,
                   height: "1px",
-                  background:
-                    "linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.1), transparent)",
+                  background: "var(--color-ash-gray)",
                 }}
               />
             </div>

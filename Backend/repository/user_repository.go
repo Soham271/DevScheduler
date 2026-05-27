@@ -25,6 +25,18 @@ func EnsureUserIndexes() {
 		// Just log the error, don't crash
 		// log.Println("Failed to create email index:", err)
 	}
+
+	monitoringUniqueIndex := mongo.IndexModel{
+		Keys:    bson.D{{Key: "platform", Value: 1}, {Key: "username", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+	_, _ = config.MonitoringCollection.Indexes().CreateOne(ctx, monitoringUniqueIndex)
+
+	monitoringTTLIndex := mongo.IndexModel{
+		Keys:    bson.D{{Key: "expires_at", Value: 1}},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+	_, _ = config.MonitoringCollection.Indexes().CreateOne(ctx, monitoringTTLIndex)
 }
 
 func CreateUser(user model.User) error {
@@ -81,4 +93,61 @@ func GetAllUsers() ([]model.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func UpsertMonitoringRegistration(reg model.MonitoredRegistration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"platform": reg.Platform,
+		"username": reg.Username,
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"email":         reg.Email,
+			"platform":      reg.Platform,
+			"username":      reg.Username,
+			"registered_at": reg.RegisteredAt,
+			"expires_at":    reg.ExpiresAt,
+		},
+	}
+
+	_, err := config.MonitoringCollection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	return err
+}
+
+func GetMonitoringRegistration(platform, username string) (*model.MonitoredRegistration, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var reg model.MonitoredRegistration
+	err := config.MonitoringCollection.FindOne(ctx, bson.M{
+		"platform": platform,
+		"username": username,
+	}).Decode(&reg)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &reg, nil
+}
+
+func GetAllMonitoringRegistrations() ([]model.MonitoredRegistration, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var regs []model.MonitoredRegistration
+	cursor, err := config.MonitoringCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &regs); err != nil {
+		return nil, err
+	}
+	return regs, nil
 }

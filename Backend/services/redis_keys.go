@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"devflow-scheduler/model"
+	"devflow-scheduler/repository"
 	"fmt"
 	"log"
 	"strconv"
@@ -31,6 +33,9 @@ const MaxInactivityReminders = 8
 
 // ReminderIntervalMinutes is the gap between consecutive inactivity reminders.
 const ReminderIntervalMinutes = 60
+
+// MonitoringTTL defines how long a monitored handle remains active.
+const MonitoringTTL = 30 * 24 * time.Hour
 
 // ─── User Activity (solve count tracking) ───────────────────
 
@@ -143,12 +148,36 @@ func MarkContestReminderSent(rdb *redis.Client, platform, contest string, minute
 // GetUserEmail retrieves the email for a registered user.
 // The email is stored as the value of the registered_user key.
 func GetUserEmail(rdb *redis.Client, platform, username string) string {
-	key := fmt.Sprintf("registered_user:%s:%s", platform, username)
-	val, err := rdb.Get(rctx, key).Result()
-	if err != nil {
+	registration, ok := GetMonitoredRegistration(rdb, platform, username)
+	if !ok {
 		return ""
 	}
-	return val
+	return registration.Email
+}
+
+// SaveMonitoredRegistration stores monitoring metadata in MongoDB and expires it after 30 days.
+func SaveMonitoredRegistration(rdb *redis.Client, platform, username, email string, now time.Time) (*model.MonitoredRegistration, error) {
+	expiresAt := now.Add(MonitoringTTL)
+	registration := &model.MonitoredRegistration{
+		Email:        email,
+		Platform:     platform,
+		Username:     username,
+		RegisteredAt: now.UTC(),
+		ExpiresAt:    expiresAt.UTC(),
+	}
+	if err := repository.UpsertMonitoringRegistration(*registration); err != nil {
+		return nil, err
+	}
+	return registration, nil
+}
+
+// GetMonitoredRegistration returns monitoring metadata for a user from MongoDB.
+func GetMonitoredRegistration(rdb *redis.Client, platform, username string) (*model.MonitoredRegistration, bool) {
+	registration, err := repository.GetMonitoringRegistration(platform, username)
+	if err != nil || registration == nil {
+		return nil, false
+	}
+	return registration, true
 }
 
 // ─── Helper ─────────────────────────────────────────────────
