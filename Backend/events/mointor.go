@@ -174,11 +174,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	// ═════════════════════════════════════════════════════════════
-	//  Monitor 3: LeetCode Inactivity Reminder Monitor
-	//  Checks every minute if it's past 8 PM IST and users are inactive.
-	//  Uses recentSubmissionList (today's submissions) as the source of truth.
-	// ═════════════════════════════════════════════════════════════
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		log.Println("💤 [Monitor] Started inactivity reminder monitor (every 1 min)")
@@ -187,9 +182,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			now := time.Now().In(monitorIST)
 			todayDate := now.Format("2006-01-02")
 
-			// Only activate after 5:00 PM IST
-			cutoffHour := 17 // 5 PM
-			if now.Hour() < cutoffHour {
+			if now.Hour() < 10 {
 				continue
 			}
 
@@ -199,44 +192,44 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			}
 
 			for _, u := range users {
-				// Currently monitoring LeetCode and Codeforces users for inactivity
-				if u.Platform != "leetcode" && u.Platform != "codeforces" {
-					continue
-				}
-
 				email := services.GetUserEmail(rdb, u.Platform, u.Username)
 				if email == "" {
 					continue
 				}
 
-				// Check if today's date differs from tracked date → reset counters
 				trackedDate := services.GetInactivityDate(rdb, u.Platform, u.Username)
 				if trackedDate != todayDate {
 					services.ResetInactivityCount(rdb, u.Platform, u.Username)
 					services.SetInactivityDate(rdb, u.Platform, u.Username, todayDate)
 				}
 
-				// Check if max reminders already sent
 				reminderCount := services.GetInactivityCount(rdb, u.Platform, u.Username)
 				if reminderCount >= services.MaxInactivityReminders {
 					continue
 				}
 
-				// Fetch today's submissions directly via the appropriate API
+				profile, err := services.FetchUserProfile(u.Platform, u.Username)
+				if err != nil {
+					log.Printf("❌ [Inactivity Monitor] Failed to fetch profile for %s@%s: %v", u.Username, u.Platform, err)
+					continue
+				}
+
 				var submissionsToday int
 				if u.Platform == "leetcode" {
 					submissionsToday = services.FetchLeetCodeTodaySubmissions(u.Username)
 				} else if u.Platform == "codeforces" {
 					submissionsToday = services.FetchCFTodaySubmissionsPublic(u.Username)
+				} else {
+					if profile.SubmissionsToday {
+						submissionsToday = 1
+					}
 				}
 
 				if submissionsToday > 0 {
-					// User solved something today → active, clear reminders
 					log.Printf("✅ [Inactivity Monitor] %s@%s has %d submission(s) today — clearing reminders",
 						u.Username, u.Platform, submissionsToday)
 					services.ResetInactivityCount(rdb, u.Platform, u.Username)
 
-					// Emit positive activity to the live feed
 					services.EmitProductivityActivity(rdb, "success",
 						fmt.Sprintf("Streak Maintained — %s@%s", u.Username, u.Platform),
 						fmt.Sprintf("%s solved %d problem(s) today on %s 🔥", u.Username, submissionsToday, u.Platform),
@@ -246,23 +239,19 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					continue
 				}
 
-				// User has 0 submissions today — check if enough time passed since last reminder
+				intervalMinutes := 60
+				if now.Hour() >= 20 {
+					intervalMinutes = 15
+				}
+
 				lastSent := services.GetLastReminderSent(rdb, u.Platform, u.Username)
 				if !lastSent.IsZero() {
 					elapsed := time.Since(lastSent).Minutes()
-					if elapsed < float64(services.ReminderIntervalMinutes) {
-						continue // Too soon for next reminder
+					if elapsed < float64(intervalMinutes) {
+						continue
 					}
 				}
 
-				// Fetch profile for total_solved count (used in the email body)
-				profile, err := services.FetchUserProfile(u.Platform, u.Username)
-				if err != nil {
-					log.Printf("❌ [Inactivity Monitor] Failed to fetch profile for %s@%s: %v", u.Username, u.Platform, err)
-					continue
-				}
-
-				// Send the reminder
 				newCount := services.IncrInactivityCount(rdb, u.Platform, u.Username)
 				HandleInactivityReminder(rdb, u.Platform, u.Username, email, newCount, profile.TotalSolved)
 

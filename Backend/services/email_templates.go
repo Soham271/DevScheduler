@@ -62,10 +62,10 @@ Hey %s! 👋
 
 💡 Quick tip: Even solving one Easy problem keeps your momentum going!
 
-🔔 This is reminder #%d of 5.
-   Reminders will stop once you solve a problem or after 5 alerts.
+🔔 This is reminder #%d of %d.
+   Reminders will stop once you solve a problem or after %d alerts.
 
-%s`, urgency, username, message, platform, totalSolved, reminderNum, emailFooter)
+%s`, urgency, username, message, platform, totalSolved, reminderNum, MaxInactivityReminders, MaxInactivityReminders, emailFooter)
 }
 
 // ─── Contest Reminder ───────────────────────────────────────

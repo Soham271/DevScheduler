@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
 	"time"
 
 	"devflow-scheduler/model"
@@ -162,7 +163,7 @@ func saveJobToRedis(rdb *redis.Client, job *model.Job) {
 	log.Printf("Job %s [%s] stored in Redis queue", job.ID, job.Type)
 }
 
-// GetRegisteredUsers reads all monitored users from MongoDB.
+// GetRegisteredUsers reads all monitored users from MongoDB and fallbacks/complements with Redis.
 func GetRegisteredUsers(rdb *redis.Client) []struct {
 	Platform string
 	Username string
@@ -177,14 +178,42 @@ func GetRegisteredUsers(rdb *redis.Client) []struct {
 		Platform string
 		Username string
 	}
+	seen := make(map[string]bool)
+
 	for _, reg := range registrations {
-		users = append(users, struct {
-			Platform string
-			Username string
-		}{
-			Platform: reg.Platform,
-			Username: reg.Username,
-		})
+		key := reg.Platform + ":" + reg.Username
+		if !seen[key] {
+			users = append(users, struct {
+				Platform string
+				Username string
+			}{
+				Platform: reg.Platform,
+				Username: reg.Username,
+			})
+			seen[key] = true
+		}
+	}
+
+	keys, err := rdb.Keys(ctx, "registered_user:*").Result()
+	if err == nil {
+		for _, k := range keys {
+			parts := strings.Split(k, ":")
+			if len(parts) == 3 {
+				platform := parts[1]
+				username := parts[2]
+				key := platform + ":" + username
+				if !seen[key] {
+					users = append(users, struct {
+						Platform string
+						Username string
+					}{
+						Platform: platform,
+						Username: username,
+					})
+					seen[key] = true
+				}
+			}
+		}
 	}
 
 	return users

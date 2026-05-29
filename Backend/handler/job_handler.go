@@ -10,6 +10,7 @@ import (
 	"devflow-scheduler/config"
 	"devflow-scheduler/events"
 	"devflow-scheduler/model"
+	"devflow-scheduler/repository"
 	"devflow-scheduler/services"
 
 	"github.com/gin-gonic/gin"
@@ -94,7 +95,7 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		if (platform == "leetcode" || platform == "codeforces") && profile.IsInactiveToday {
+		if profile.IsInactiveToday {
 			m := c.GetString("user_email")
 			if m != "" {
 				s := fmt.Sprintf("⚠️ %s Inactivity Reminder!", platform)
@@ -168,12 +169,24 @@ func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		registration, err := services.SaveMonitoredRegistration(rdb, platform, username, req.Email, time.Now())
+		regTime := time.Now()
+		registration, err := services.SaveMonitoredRegistration(rdb, platform, username, req.Email, regTime)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to register user in Redis",
 			})
 			return
+		}
+
+		dbReg := model.MonitoredRegistration{
+			Email:        req.Email,
+			Platform:     platform,
+			Username:     username,
+			RegisteredAt: regTime,
+			ExpiresAt:    regTime.Add(30 * 24 * time.Hour),
+		}
+		if err := repository.UpsertMonitoringRegistration(dbReg); err != nil {
+			log.Printf("⚠️ Failed to upsert monitoring registration to MongoDB: %v", err)
 		}
 
 		log.Printf("✅ Registered user %s@%s (%s) for periodic monitoring", username, platform, req.Email)

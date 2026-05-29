@@ -2,8 +2,7 @@ package services
 
 import (
 	"context"
-	"devflow-scheduler/model"
-	"devflow-scheduler/repository"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -12,24 +11,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  Redis Key Strategy for Notification Deduplication
-// ═══════════════════════════════════════════════════════════════
-//
-//  Key Pattern                                          | Purpose
-//  ─────────────────────────────────────────────────────+────────────────────────────────
-//  user_activity:<platform>:<username>                  | Last known solve count (int)
-//  inactivity_count:<platform>:<username>               | Reminders sent today (int)
-//  inactivity_date:<platform>:<username>                | Date of current tracking (string "2006-01-02")
-//  last_reminder_sent:<platform>:<username>             | Unix timestamp of last reminder
-//  contest_reminder_sent:<platform>:<contest>:<minutes> | Whether this slot was sent ("1")
-//
-// ═══════════════════════════════════════════════════════════════
-
 var rctx = context.Background()
 
+type MonitoredRegistration struct {
+	Email        string `json:"email"`
+	RegisteredAt string `json:"registered_at"`
+	ExpiresAt    string `json:"expires_at"`
+}
+
 // MaxInactivityReminders is the maximum number of inactivity reminders per user per day.
-const MaxInactivityReminders = 8
+const MaxInactivityReminders = 50
 
 // ReminderIntervalMinutes is the gap between consecutive inactivity reminders.
 const ReminderIntervalMinutes = 60
@@ -155,29 +146,40 @@ func GetUserEmail(rdb *redis.Client, platform, username string) string {
 	return registration.Email
 }
 
-// SaveMonitoredRegistration stores monitoring metadata in MongoDB and expires it after 30 days.
-func SaveMonitoredRegistration(rdb *redis.Client, platform, username, email string, now time.Time) (*model.MonitoredRegistration, error) {
+// SaveMonitoredRegistration stores monitoring metadata and auto-expires it after 30 days.
+func SaveMonitoredRegistration(rdb *redis.Client, platform, username, email string, now time.Time) (*MonitoredRegistration, error) {
+	key := fmt.Sprintf("registered_user:%s:%s", platform, username)
 	expiresAt := now.Add(MonitoringTTL)
-	registration := &model.MonitoredRegistration{
+	registration := &MonitoredRegistration{
 		Email:        email,
-		Platform:     platform,
-		Username:     username,
-		RegisteredAt: now.UTC(),
-		ExpiresAt:    expiresAt.UTC(),
+		RegisteredAt: now.UTC().Format(time.RFC3339),
+		ExpiresAt:    expiresAt.UTC().Format(time.RFC3339),
 	}
-	if err := repository.UpsertMonitoringRegistration(*registration); err != nil {
+	payload, err := json.Marshal(registration)
+	if err != nil {
+		return nil, err
+	}
+	if err := rdb.Set(rctx, key, payload, MonitoringTTL).Err(); err != nil {
 		return nil, err
 	}
 	return registration, nil
 }
 
-// GetMonitoredRegistration returns monitoring metadata for a user from MongoDB.
-func GetMonitoredRegistration(rdb *redis.Client, platform, username string) (*model.MonitoredRegistration, bool) {
-	registration, err := repository.GetMonitoringRegistration(platform, username)
-	if err != nil || registration == nil {
+// GetMonitoredRegistration returns monitoring metadata for a user.
+// Legacy values that stored only a raw email remain supported.
+func GetMonitoredRegistration(rdb *redis.Client, platform, username string) (*MonitoredRegistration, bool) {
+	key := fmt.Sprintf("registered_user:%s:%s", platform, username)
+	val, err := rdb.Get(rctx, key).Result()
+	if err != nil {
 		return nil, false
 	}
-	return registration, true
+
+	var registration MonitoredRegistration
+	if err := json.Unmarshal([]byte(val), &registration); err == nil && registration.Email != "" {
+		return &registration, true
+	}
+
+	return &MonitoredRegistration{Email: val}, true
 }
 
 // ─── Helper ─────────────────────────────────────────────────
