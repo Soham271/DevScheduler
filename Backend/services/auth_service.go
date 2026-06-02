@@ -12,12 +12,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ──────────────────────────────────────────────
-// Signup / Login
-// ──────────────────────────────────────────────
 
-// CreateUser hashes the password and stores the user.
-// Returns an error if the email is already registered.
+
+
+
+
+
 func CreateUser(email, password string) error {
 	existingUser, err := repository.GetUserByEmail(email)
 	if err != nil {
@@ -40,7 +40,7 @@ func CreateUser(email, password string) error {
 	return repository.CreateUser(newUser)
 }
 
-// AuthenticateUser checks credentials and returns a JWT on success.
+
 func AuthenticateUser(email, password string) (string, error) {
 	user, err := repository.GetUserByEmail(email)
 	if err != nil {
@@ -57,11 +57,11 @@ func AuthenticateUser(email, password string) (string, error) {
 	return GenerateJWT(email)
 }
 
-// ──────────────────────────────────────────────
-// JWT helpers
-// ──────────────────────────────────────────────
 
-// GenerateJWT creates a signed token valid for 24 hours.
+
+
+
+
 func GenerateJWT(email string) (string, error) {
 	secret := getJWTSecret()
 
@@ -75,12 +75,12 @@ func GenerateJWT(email string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-// ValidateJWT parses and validates the token, returning the claims.
+
 func ValidateJWT(tokenStr string) (jwt.MapClaims, error) {
 	secret := getJWTSecret()
 
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		// Ensure signing method is HMAC
+		
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
@@ -99,11 +99,11 @@ func ValidateJWT(tokenStr string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-// getJWTSecret reads the secret from the environment variable.
+
 func getJWTSecret() string {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "devflow-default-secret-change-me" // fallback for dev
+		secret = "devflow-default-secret-change-me" 
 	}
 	return secret
 }

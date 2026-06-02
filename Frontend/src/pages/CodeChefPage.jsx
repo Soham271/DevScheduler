@@ -11,9 +11,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
 } from 'recharts';
 
-// ═══════════════════════════════════════════════════════════════
-//  Stats Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)]', icon: Icon }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
     className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-5 hover:shadow-[var(--shadow-subtle)] transition-shadow group">
@@ -26,9 +26,9 @@ const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Contest Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const ContestCard = ({ contest }) => {
   const change = contest.rating_change;
   const isPositive = change >= 0;
@@ -140,9 +140,9 @@ const RatingGraph = ({ history }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Main CodeChef Intelligence Page
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const CodeChefPage = () => {
   const stored = getLocalProfile();
   const [username, setUsername] = useState(stored?.codechef_username || '');

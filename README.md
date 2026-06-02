@@ -1,537 +1,549 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go&logoColor=white" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/ChromaDB-FF6F00?style=for-the-badge&logo=databricks&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
 </p>
 
-<h1 align="center">🚀 DevScheduler</h1>
+<h1 align="center">DevScheduler</h1>
 
 <p align="center">
-  <strong>A real-time competitive programming intelligence dashboard with automated email reminders, multi-platform analytics, GitHub activity tracking, and a background job scheduler — all powered by Go, React, Redis & MongoDB.</strong>
+  A competitive programming dashboard that tracks your coding activity across LeetCode, Codeforces, CodeChef, and GeeksForGeeks — with automated streak reminders, contest countdowns, GitHub monitoring, and a RAG-powered chatbot that actually knows your stats.
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#%EF%B8%8F-architecture">Architecture</a> •
-  <a href="#-system-workflow">Workflow</a> •
-  <a href="#-project-structure">Structure</a> •
-  <a href="#-getting-started">Setup</a> •
-  <a href="#-api-reference">API</a> •
-  <a href="#-screenshots">Screenshots</a>
+  <a href="#what-this-does">What This Does</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#the-chatbot">The Chatbot</a> •
+  <a href="#project-structure">Structure</a> •
+  <a href="#running-locally">Setup</a> •
+  <a href="#api-endpoints">API</a>
 </p>
 
 ---
 
-## ✨ Features
+## What This Does
 
-### 🧠 Multi-Platform Intelligence Engine
-| Platform | Data Source | Features |
-|----------|-----------|----------|
-| **LeetCode** | GraphQL API | Problems solved, difficulty breakdown, submission calendar/heatmap, streaks, recent submissions, contest history with rating changes |
-| **Codeforces** | Official REST API | Rating & rank (with color-coded tiers), tag distribution, submission calendar, streaks, contest history with Δ rating |
-| **CodeChef** | Web Scraping (Colly) | Star rating, current/max rating, global & country rank, problems solved, contest history |
-| **GeeksForGeeks** | Stats API + Scraping | Coding score, difficulty breakdown (easy/medium/hard), streaks, monthly coding score, institute rank |
-| **GitHub** | Public Events API | Push events, pull request tracking, repo activity feed |
+I built this because I kept forgetting to solve my daily LeetCode problem and my streak would die. I also wanted a single place to see all my competitive programming stats without opening five different websites.
 
-### 📧 Intelligent Notification System
-- **Inactivity Reminders** — If you haven't solved a problem today, email reminders start at **5:00 PM IST** and repeat **every hour** (up to 8 times).
-- **Contest Countdown Alerts** — Email reminders at **60, 30, 15, 5, and 1 minute** before any upcoming contest.
-- **Scheduled Emails** — One-time delayed emails via the built-in job scheduler with date/time picker.
-- **Deduplication** — Redis-based key strategy ensures no duplicate reminders are ever sent.
+DevScheduler does three things:
 
-### 🏗️ Real-Time Activity Feed (SSE)
-- Server-Sent Events hub broadcasts live updates to all connected clients.
-- GitHub pushes, inactivity alerts, contest reminders, and analysis results appear instantly.
-- Categorized feed items: `success`, `warning`, `info`, `github`.
+1. **Tracks your coding profiles** — Pulls data from LeetCode, Codeforces, CodeChef, GFG, and GitHub. Shows your solve count, streaks, heatmaps, contest ratings, and recent submissions in one dashboard.
 
-### 🔐 Authentication
-- **JWT-based** email/password signup and login.
-- **Google OAuth 2.0** one-click sign-in.
-- Onboarding modal to capture platform usernames on first login.
+2. **Nags you when you're slacking** — If you haven't solved anything today, it sends you an email reminder. It also sends countdown alerts before upcoming contests (60 min, 30 min, 15 min, 5 min, 1 min before start).
 
-### ⚡ Background Job Scheduler
-- Redis Sorted Set based job queue with Unix timestamp scoring.
-- Goroutine worker pool (configurable pool size) processes jobs concurrently.
-- Job types: `send_email`, `send_analysis`, `contest_reminder`, `scheduled_email`.
+3. **Lets you ask questions about your data** — There's a floating chatbot widget on every page. It uses RAG (Retrieval-Augmented Generation) with ChromaDB as the vector store and Gemini as the LLM. You can ask stuff like "what's my LeetCode rating?" or "when's the next Codeforces contest?" and it answers from your actual data.
+
+### Platform Coverage
+
+| Platform | How Data is Fetched | What You Get |
+|----------|-------------------|--------------|
+| LeetCode | GraphQL API | Solve count, difficulty split, submission heatmap, streaks, contest rating history |
+| Codeforces | REST API (`user.info`, `user.status`, `user.rating`) | Rating/rank with color tiers, tag distribution, submission calendar, contest history |
+| CodeChef | Web scraping with Colly | Star rating, current/max rating, global + country rank, problems solved |
+| GeeksForGeeks | Stats API + Colly scraping | Coding score, difficulty breakdown, streaks, institute rank |
+| GitHub | Public Events API | Push events, PR tracking, repo activity |
 
 ---
 
-## 🏛️ Architecture
+## How It Works
+
+The system has three separate processes that need to be running:
+
+1. **Go Backend** (port 8080) — The main API server. Handles auth, proxies platform data, runs the job scheduler, and manages background monitors.
+2. **React Frontend** (port 5173) — The dashboard UI. Talks to the Go backend over REST and receives real-time updates via SSE.
+3. **Node.js Chatbot** (port 3001) — A separate Express server that handles the RAG chatbot. The Go backend proxies `/chat` requests to this service.
+
+### Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         CLIENT (Browser)                            │
-│  React 19 · Vite · Tailwind v4 · Framer Motion · Lucide Icons      │
-└──────────────┬──────────────────────────────────┬───────────────────┘
-               │  REST API (JSON)                 │  SSE Stream
-               ▼                                  ▼
+│                        BROWSER (React 19)                           │
+│  Vite · Tailwind v4 · Framer Motion · Lucide Icons                  │
+└──────────────┬──────────────────────────────┬───────────────────────┘
+               │  REST (JSON)                 │  SSE (real-time feed)
+               ▼                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      GO API SERVER (Gin)                            │
-│  Port 8080 · CORS · JWT Middleware · Route Groups                   │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐ │
-│  │ Handlers │  │   Services   │  │   Workers    │  │  Scheduler │ │
-│  │ (REST)   │──│ (Business)   │──│ (Job Queue)  │──│  (Engine)  │ │
-│  └──────────┘  └──────────────┘  └──────────────┘  └────────────┘ │
-│                                                                     │
-│  ┌──────────────────────┐  ┌────────────────────────────────────┐  │
-│  │  Event Monitors (4)  │  │  SSE Hub (real-time broadcasting) │  │
-│  │  • User Analysis     │  │  • Activity Feed                  │  │
-│  │  • Contest Reminders  │  │  • GitHub Events                  │  │
-│  │  • Inactivity Check  │  │  • Productivity Alerts            │  │
-│  │  • GitHub Tracker    │  └────────────────────────────────────┘  │
-│  └──────────────────────┘                                          │
-└──────────┬──────────────────────────────┬──────────────────────────┘
-           │                              │
-           ▼                              ▼
+│                     GO API SERVER (Gin, :8080)                       │
+│                                                                      │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────────┐  │
+│  │  Handlers  │  │  Services  │  │  Workers   │  │  Scheduler   │  │
+│  │  (routes)  │→ │  (logic)   │→ │  (jobs)    │← │  (Redis poll)│  │
+│  └────────────┘  └────────────┘  └────────────┘  └──────────────┘  │
+│                                                                      │
+│  ┌───────────────────────────┐  ┌────────────────────────────────┐  │
+│  │  Background Monitors (5) │  │  SSE Hub                       │  │
+│  │  • User analysis (5 min) │  │  • Broadcasts events to all    │  │
+│  │  • Contest reminders     │  │    connected browser clients    │  │
+│  │  • Inactivity checker    │  └────────────────────────────────┘  │
+│  │  • Contest countdown     │                                      │
+│  │  • GitHub tracker        │  ┌────────────────────────────────┐  │
+│  └───────────────────────────┘  │  Chat Proxy → :3001           │  │
+│                                  └────────────────────────────────┘  │
+└──────────┬────────────────────────────────┬──────────────────────────┘
+           │                                │
+           ▼                                ▼
 ┌─────────────────────┐      ┌─────────────────────┐
-│    Redis (Cache)    │      │   MongoDB (Store)   │
-│  • Job Queue (ZSET) │      │  • Users Collection │
-│  • Activity State   │      │  • Activity Logs    │
-│  • Reminder Dedup   │      │  • User Profiles    │
-│  • Registered Users │      └─────────────────────┘
+│   Redis              │      │   MongoDB            │
+│   • Job queue (ZSET) │      │   • users            │
+│   • Reminder state   │      │   • monitored_regs   │
+│   • Dedup keys       │      │   • activities        │
+│   • Registered users │      └─────────────────────┘
 └─────────────────────┘
 
+┌─────────────────────────────────────────────────────────────────────┐
+│                  NODE.JS CHATBOT SERVICE (:3001)                     │
+│  Express · OpenAI SDK (Gemini) · ChromaDB                           │
+│                                                                      │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐                  │
+│  │  Routes  │→ │  Controller  │→ │  AI Service  │                  │
+│  │  /chat   │  │  (parse req) │  │  (RAG query) │                  │
+│  │  /ingest │  │              │  │  Gemini 2.5  │                  │
+│  └──────────┘  └──────────────┘  └──────┬───────┘                  │
+│                                          │                           │
+│                                   ┌──────▼───────┐                  │
+│                                   │   ChromaDB   │                  │
+│                                   │   (vectors)  │                  │
+│                                   └──────────────┘                  │
+└─────────────────────────────────────────────────────────────────────┘
+
            ┌──────────────────────────────────────────┐
-           │         EXTERNAL PLATFORM APIs            │
+           │         EXTERNAL APIs                     │
            │  • LeetCode GraphQL                       │
            │  • Codeforces REST API                    │
-           │  • CodeChef (Web Scraping via Colly)      │
-           │  • GeeksForGeeks (API + Scraping)         │
-           │  • GitHub Public Events API               │
-           │  • Gmail SMTP (Email Dispatch)             │
+           │  • CodeChef (Colly scraper)               │
+           │  • GeeksForGeeks (API + scraper)          │
+           │  • GitHub Public Events                   │
+           │  • Gmail SMTP                             │
+           │  • Google Generative AI (Gemini)          │
            └──────────────────────────────────────────┘
 ```
 
----
+### How the Inactivity Reminders Work
 
-## 🔄 System Workflow
+This was the trickiest part to get right. Here's the flow:
 
-### 1. User Analysis Flow
+1. A background goroutine ticks **every 1 minute**.
+2. It skips everything before **10 AM IST** — nobody wants emails at 3 AM.
+3. For each registered user, it checks if they've solved anything today by hitting the platform API directly (LeetCode GraphQL, Codeforces `user.status`, etc.).
+4. If they have solved something → it emits a "Streak Maintained" activity to the SSE feed and clears any pending reminder state.
+5. If they haven't solved anything:
+   - It checks how many reminders have already been sent today (capped at 50).
+   - It checks if enough time has passed since the last reminder (60 minutes normally, 15 minutes after 8 PM).
+   - If both checks pass, it creates an inactivity reminder job in the Redis job queue.
+6. The scheduler engine picks up the job and passes it to the worker pool.
+7. A worker sends the email via Gmail SMTP and emits a "Reminder Sent" activity to the SSE feed.
 
-```mermaid
-sequenceDiagram
-    participant U as User (Browser)
-    participant F as React Frontend
-    participant B as Go Backend
-    participant P as Platform API
-    participant R as Redis
+The emails are registered per-user per-platform, so you'll get separate reminders for LeetCode, Codeforces, and CodeChef if you're inactive on all three.
 
-    U->>F: Click "Analyze" on Dashboard
-    F->>B: POST /platforms/{platform}/analyze
-    B->>P: Fetch profile via API/Scraping
-    P-->>B: Raw profile data
-    B->>B: Normalize → Heatmap → Streaks → Tags
-    B-->>F: JSON { profile, analysis }
-    F->>F: Render stats, heatmap, charts
-    U->>F: Click "For more detail →"
-    F->>F: Navigate to /platforms/{platform}
-    Note over F: Auto-analyze via location.state
-```
+### How the Contest Countdown Works
 
-### 2. Inactivity Reminder Flow
+Another background goroutine runs every 1 minute. It:
 
-```mermaid
-flowchart TD
-    A[Monitor Ticker - Every 1 min] --> B{Is it after 5 PM IST?}
-    B -- No --> A
-    B -- Yes --> C[Get all registered users from Redis]
-    C --> D{For each user}
-    D --> E{Max reminders reached?}
-    E -- Yes --> D
-    E -- No --> F[Fetch today's submissions from Platform API]
-    F --> G{Submissions > 0?}
-    G -- Yes --> H[✅ Clear reminders + Emit success activity]
-    G -- No --> I{Enough time since last reminder?}
-    I -- No --> D
-    I -- Yes --> J[📧 Send inactivity email via SMTP]
-    J --> K[Increment reminder count in Redis]
-    K --> L[Record timestamp in Redis]
-    L --> D
-    H --> D
-```
+1. Fetches all upcoming contests from the contest service (which scrapes real contest schedules).
+2. For each contest, checks if it starts in roughly 60, 30, 15, 5, or 1 minute.
+3. If a countdown slot matches, it sends a reminder email to every user registered on that platform.
+4. Redis deduplication keys (`contest_reminder_sent:{platform}:{contest}:{minutes}`) prevent sending the same countdown twice.
 
-### 3. Background Job Scheduler Flow
+### How the Job Scheduler Works
 
-```mermaid
-flowchart LR
-    A[API Handler] -->|Schedule Job| B[Redis Sorted Set]
-    B -->|Score = Unix Timestamp| C[Scheduler Engine]
-    C -->|Every 1 second| D{Any jobs ready?}
-    D -- No --> C
-    D -- Yes --> E[Pop job from ZSET]
-    E --> F[Push to JobQueue channel]
-    F --> G[Worker Pool - 5 goroutines]
-    G --> H{Job Type?}
-    H -->|send_email| I[SMTP Dispatch]
-    H -->|send_analysis| J[Platform Analysis + Email]
-    H -->|contest_reminder| K[Contest Alert Email]
-    H -->|scheduled_email| L[One-time Delayed Email]
-```
+The scheduler is dead simple:
 
-### 4. Real-Time SSE Activity Feed
+- Jobs are stored in a Redis Sorted Set where the **score is a Unix timestamp** (when the job should run).
+- The scheduler engine polls every 30 seconds, grabs all jobs whose score ≤ current time, removes them from the set, and pushes them into a Go channel.
+- A pool of 5 worker goroutines reads from the channel and processes jobs concurrently.
+- Job types: `email_notification`, `send_analysis`, `leetcode_contest`, `codechef_contest`, `leetcode_inactivity_reminder`, `contest_reminder`, `delayed_email`.
 
-```mermaid
-flowchart LR
-    A[GitHub Monitor] --> D[SSE Hub]
-    B[Inactivity Monitor] --> D
-    C[Contest Monitor] --> D
-    D -->|Server-Sent Events| E[Browser Client 1]
-    D -->|Server-Sent Events| F[Browser Client 2]
-    D -->|Server-Sent Events| G[Browser Client N]
-```
+### Real-Time Activity Feed (SSE)
+
+The dashboard has a live activity feed that updates without polling. It uses Server-Sent Events:
+
+- When anything happens (analysis complete, reminder sent, GitHub push detected, contest approaching), the backend emits an event through the SSE Hub.
+- All connected browser clients receive it instantly.
+- Activities are persisted in Redis and categorized as `productivity`, `reminder`, `github`, `contest`, or `email`.
 
 ---
 
-## 📁 Project Structure
+## The Chatbot
+
+The chatbot is a separate Node.js microservice that runs alongside the Go backend. It uses RAG (Retrieval-Augmented Generation) to answer questions about your coding data.
+
+### How It Works
+
+1. **Data Ingestion** — The scraper service (`scraperService.js`) can crawl and ingest content into ChromaDB as vector embeddings using the default embedding function.
+2. **Query Flow** — When you ask a question in the chat widget:
+   - The frontend sends your message + user context (your platform IDs, upcoming contests) to the Go backend's `/chat` endpoint.
+   - The Go backend proxies it to the Node.js service at `localhost:3001/api/chat`.
+   - The chatbot queries ChromaDB for the 15 most relevant context chunks.
+   - It builds a prompt with the context + your user profile and sends it to Google Gemini (`gemini-2.5-flash`) via the OpenAI-compatible API.
+   - The response comes back through the proxy to the frontend.
+3. **User Context** — The frontend automatically includes your platform usernames and upcoming contest schedule in every chat request, so the chatbot knows who you are without you having to tell it.
+
+### Chatbot Architecture
+
+```
+chat-bot/
+├── app.js                    # Express server entry point (port 3001)
+├── config/
+│   └── db.js                 # ChromaDB + OpenAI (Gemini) client setup
+├── controllers/
+│   ├── chatController.js     # Handles POST /api/chat requests
+│   └── ingestController.js   # Handles POST /api/ingest for data loading
+├── routes/
+│   ├── chatRouter.js         # /api/chat route
+│   └── ingestRouter.js       # /api/ingest route
+├── services/
+│   ├── aiService.js          # RAG query logic (ChromaDB search → Gemini)
+│   └── scraperService.js     # Web scraper for ingesting data into ChromaDB
+└── .env                      # GEMINI_API_KEY, OPENROUTER_API_KEY
+```
+
+---
+
+## Project Structure
 
 ```
 DevScheduler/
-├── Backend/                          # Go API Server
-│   ├── main.go                       # Entry point — boots Redis, MongoDB, Router, Workers, Monitors
-│   ├── .env                          # Environment variables (secrets, API keys)
-│   ├── go.mod                        # Go module dependencies
-│   │
-│   ├── config/                       # Database connections & app config
-│   │   └── db.go                     # Redis + MongoDB + env config loader
-│   │
-│   ├── model/                        # Data structures
-│   │   ├── user.go                   # User, UserProfile, AnalysisResult, ContestInfo
-│   │   ├── job.go                    # Job model for scheduler queue
-│   │   └── activity.go              # Activity feed item model
-│   │
-│   ├── handler/                      # HTTP route handlers (controllers)
-│   │   ├── auth_handler.go           # Signup, Login, Google OAuth
-│   │   ├── leetcode_handler.go       # LeetCode /analyze, /profile, /heatmap, /submissions, /contests
-│   │   ├── codeforces_handler.go     # Codeforces /analyze
-│   │   ├── codechef_handler.go       # CodeChef /analyze
-│   │   ├── gfg_handler.go           # GeeksForGeeks /analyze
-│   │   ├── job_handler.go           # Register user, fetch analysis, platform profiles
-│   │   ├── activity_handler.go      # GET /activities, SSE /activities/stream
-│   │   ├── email_handler.go         # Direct email dispatch
-│   │   ├── schedule_email_handler.go # Schedule delayed emails
-│   │   └── user_handler.go          # User profile management
-│   │
-│   ├── services/                     # Business logic layer
-│   │   ├── leetcode_service.go       # LeetCode GraphQL: profile, calendar, submissions, contests
-│   │   ├── codeforces_service.go     # Codeforces API: user.info, user.status, user.rating
-│   │   ├── codechef_service.go       # CodeChef web scraping with Colly
-│   │   ├── gfg_service.go           # GFG stats API + Colly scraping fallback
-│   │   ├── github.go                # GitHub public events API
-│   │   ├── platform_service.go      # Unified platform dispatcher
-│   │   ├── analysis_service.go      # Intelligent analysis engine (tiers, messages)
-│   │   ├── contest_service.go       # Upcoming contest schedule generator
-│   │   ├── email_service.go         # SMTP email dispatch (Gmail)
-│   │   ├── email_templates.go       # Rich email templates (inactivity, contest, etc.)
-│   │   ├── activity_service.go      # Activity CRUD + SSE emission
-│   │   ├── sse_hub.go               # Server-Sent Events connection hub
-│   │   ├── redis_keys.go            # Redis key strategy + deduplication helpers
-│   │   ├── auth_service.go          # JWT + bcrypt authentication
-│   │   ├── google_auth_service.go   # Google OAuth token verification
-│   │   └── message_service.go       # Dynamic motivational message generator
-│   │
-│   ├── workers/                      # Background job processing
-│   │   ├── worker.go                 # Worker pool manager (goroutine pool)
-│   │   ├── payloads.go              # Job payload type definitions
-│   │   ├── email.go                 # Email job processor
-│   │   ├── leetcode.go              # LeetCode analysis job processor
-│   │   ├── codechef.go              # CodeChef analysis job processor
-│   │   ├── analysis_worker.go       # General analysis worker
-│   │   └── notification_worker.go   # Notification dispatch worker
-│   │
-│   ├── scheduler/                    # Job scheduler engine
-│   │   └── engine.go                 # Redis ZSET poller → JobQueue channel
-│   │
-│   ├── events/                       # Background event monitors
-│   │   ├── mointor.go               # 4 goroutine monitors (analysis, contest, inactivity, GitHub)
-│   │   └── event_handler.go         # Event processing logic (emails, activities)
-│   │
-│   ├── middleware/                    # HTTP middleware
-│   │   └── auth.go                   # JWT authentication middleware
-│   │
-│   └── repository/                   # Database access layer
-│       └── user_repository.go        # MongoDB CRUD for users
+├── docker-compose.yml                    # MongoDB + Redis + Backend + Frontend
 │
-└── Frontend/                         # React SPA
-    ├── index.html                    # HTML entry point
-    ├── vite.config.js                # Vite build configuration
-    ├── package.json                  # npm dependencies
-    │
-    └── src/
-        ├── main.jsx                  # React DOM root
-        ├── App.jsx                   # Router + protected routes + auth state
-        ├── index.css                 # Global styles + Tailwind v4 directives
-        │
-        ├── pages/
-        │   ├── Dashboard.jsx         # Main hub — analysis, stats, activity feed
-        │   ├── LeetCodePage.jsx      # LeetCode intelligence (heatmap, submissions, contests)
-        │   ├── CodeforcesPage.jsx    # Codeforces intelligence (rank colors, tags, rating Δ)
-        │   ├── CodeChefPage.jsx      # CodeChef intelligence (stars, global rank, contests)
-        │   ├── GFGPage.jsx           # GeeksForGeeks intelligence (score, difficulty breakdown)
-        │   ├── Contests.jsx          # Live contest countdowns
-        │   ├── Schedule.jsx          # Email scheduler with date/time picker
-        │   ├── Watch.jsx             # Watched handles management
-        │   ├── Profile.jsx           # User profile editor
-        │   ├── Login.jsx             # Login page (email + Google OAuth)
-        │   └── Signup.jsx            # Registration page
-        │
-        ├── components/
-        │   ├── Navbar.jsx            # Navigation with platform dropdown
-        │   ├── ActivityFeed.jsx      # Real-time SSE activity feed
-        │   ├── ActivityItem.jsx      # Individual feed item with icons
-        │   ├── ContestCountdown.jsx  # Live countdown timer component
-        │   ├── StatsCard.jsx         # Animated stat display card
-        │   ├── TierBadge.jsx         # Performance/rating tier badge
-        │   ├── HealthIndicator.jsx   # API health status dot
-        │   ├── ActionButton.jsx      # Gradient CTA button
-        │   ├── GoogleAuthButton.jsx  # Google sign-in button
-        │   ├── OnboardingModal.jsx   # First-login setup wizard
-        │   ├── LogoutButton.jsx      # Session clear + redirect
-        │   └── AuthFormStyles.jsx    # Shared auth form styling
-        │
-        ├── services/
-        │   └── api.js                # Centralized API client (REST + auth headers)
-        │
-        └── utils/
-            └── auth.js               # JWT storage, profile helpers, session management
+├── Backend/                              # Go API server
+│   ├── main.go                           # Entry point — boots everything
+│   ├── .env                              # Secrets (email, JWT, API keys)
+│   ├── go.mod / go.sum                   # Go dependencies
+│   │
+│   ├── config/
+│   │   ├── config.go                     # App config loader
+│   │   ├── db.go                         # MongoDB connection + collections
+│   │   └── redis.go                      # Redis client setup
+│   │
+│   ├── model/
+│   │   ├── user.go                       # User, UserProfile, MonitoredRegistration
+│   │   ├── job.go                        # Job model for the scheduler queue
+│   │   └── activity.go                   # Activity feed item model
+│   │
+│   ├── handler/                          # HTTP handlers (one per feature area)
+│   │   ├── auth_handler.go              # Signup, Login, Google OAuth
+│   │   ├── chat_handler.go              # Proxy to Node.js chatbot service
+│   │   ├── job_handler.go               # Register user, analyze, list users, contests
+│   │   ├── leetcode_handler.go          # LeetCode profile/heatmap/submissions/contests
+│   │   ├── codeforces_handler.go        # Codeforces analyze
+│   │   ├── codechef_handler.go          # CodeChef analyze
+│   │   ├── gfg_handler.go              # GFG analyze
+│   │   ├── github_handler.go           # GitHub analyze
+│   │   ├── activity_handler.go         # Activity feed + SSE stream
+│   │   ├── schedule_email_handler.go   # Schedule delayed emails
+│   │   └── user_handler.go            # User profile updates
+│   │
+│   ├── services/                        # Business logic
+│   │   ├── platform_service.go         # Unified dispatcher for all platforms
+│   │   ├── leetcode_service.go         # LeetCode GraphQL queries + streak calc
+│   │   ├── codeforces_service.go       # Codeforces API + streak calc
+│   │   ├── codechef_service.go         # CodeChef web scraping
+│   │   ├── gfg_service.go             # GFG scraping + API
+│   │   ├── github.go                   # GitHub events API
+│   │   ├── github_profile_service.go   # GitHub profile data
+│   │   ├── contest_service.go          # Upcoming contest schedule
+│   │   ├── analysis_service.go         # Performance tier + rating analysis
+│   │   ├── email_service.go            # Gmail SMTP sender
+│   │   ├── email_templates.go          # Email body builders (inactivity, contest)
+│   │   ├── activity_service.go         # Activity CRUD + SSE emission
+│   │   ├── sse_hub.go                  # Server-Sent Events connection manager
+│   │   ├── redis_keys.go              # Redis key patterns + dedup helpers
+│   │   ├── auth_service.go            # JWT generation + bcrypt
+│   │   ├── google_auth_service.go     # Google OAuth token verification
+│   │   └── message_service.go         # Dynamic motivational messages
+│   │
+│   ├── workers/                        # Background job processors
+│   │   ├── worker.go                   # Goroutine worker pool (5 workers)
+│   │   ├── payloads.go                # Job payload structs
+│   │   ├── email.go                   # Email notification worker
+│   │   ├── notification_worker.go     # Inactivity + contest reminder worker
+│   │   ├── analysis_worker.go         # User analysis worker
+│   │   ├── leetcode.go               # LeetCode contest event worker
+│   │   └── codechef.go               # CodeChef contest event worker
+│   │
+│   ├── scheduler/
+│   │   └── engine.go                   # Redis ZSET poller → worker channel
+│   │
+│   ├── events/
+│   │   ├── mointor.go                 # 5 background monitor goroutines
+│   │   └── event_handler.go           # Event creators + user registry loader
+│   │
+│   ├── middleware/
+│   │   └── jwt.go                     # JWT auth middleware
+│   │
+│   └── repository/
+│       └── user_repository.go         # MongoDB queries for users + registrations
+│
+├── Frontend/                           # React SPA
+│   ├── vite.config.js
+│   ├── package.json
+│   └── src/
+│       ├── App.jsx                    # Router, auth state, global ChatWidget
+│       ├── index.css                  # Tailwind v4 + custom styles
+│       │
+│       ├── pages/
+│       │   ├── LandingPage.jsx       # Public landing page
+│       │   ├── Dashboard.jsx         # Main hub — analyze, stats, activity feed
+│       │   ├── LeetCodePage.jsx      # LeetCode deep dive (heatmap, submissions, contests)
+│       │   ├── CodeforcesPage.jsx    # Codeforces deep dive (rank colors, tags, rating Δ)
+│       │   ├── CodeChefPage.jsx      # CodeChef deep dive (stars, ranks, contests)
+│       │   ├── GFGPage.jsx           # GFG deep dive (score, difficulty breakdown)
+│       │   ├── GitHubPage.jsx        # GitHub activity dashboard
+│       │   ├── Contests.jsx          # Live contest countdowns (all platforms)
+│       │   ├── Schedule.jsx          # Email scheduler with date/time picker
+│       │   ├── Watch.jsx             # Manage monitored handles
+│       │   ├── Profile.jsx           # User profile settings
+│       │   ├── Login.jsx             # Login (email + Google)
+│       │   └── Signup.jsx            # Registration
+│       │
+│       ├── components/
+│       │   ├── Navbar.jsx            # Top nav with platform dropdown
+│       │   ├── ChatWidget.jsx        # Floating AI chatbot (global, every page)
+│       │   ├── ActivityFeed.jsx      # Real-time SSE activity feed
+│       │   ├── ActivityItem.jsx      # Individual feed item
+│       │   ├── ContestCountdown.jsx  # Live countdown timer
+│       │   ├── StatsCard.jsx         # Animated stat card
+│       │   ├── TierBadge.jsx         # Performance tier badge
+│       │   ├── HealthIndicator.jsx   # Backend health status dot
+│       │   ├── AuthModal.jsx         # Login/signup modal
+│       │   ├── OnboardingModal.jsx   # First-login platform username capture
+│       │   ├── GoogleAuthButton.jsx  # Google sign-in button
+│       │   ├── LogoutButton.jsx      # Logout handler
+│       │   └── ActionButton.jsx      # Gradient CTA button
+│       │
+│       ├── hooks/
+│       │   └── useActivityFeed.js    # SSE connection hook
+│       │
+│       ├── services/
+│       │   └── api.js                # REST client with auth headers
+│       │
+│       └── utils/
+│           └── auth.js               # JWT storage + session helpers
+│
+└── chat-bot/                          # Node.js RAG chatbot microservice
+    ├── app.js                         # Express server (port 3001)
+    ├── .env                           # GEMINI_API_KEY, OPENROUTER_API_KEY
+    ├── config/
+    │   └── db.js                      # ChromaDB + Gemini client init
+    ├── controllers/
+    │   ├── chatController.js          # Chat request handler
+    │   └── ingestController.js        # Data ingestion handler
+    ├── routes/
+    │   ├── chatRouter.js              # POST /api/chat
+    │   └── ingestRouter.js            # POST /api/ingest
+    └── services/
+        ├── aiService.js               # ChromaDB query → Gemini completion
+        └── scraperService.js          # Web scraper for data ingestion
 ```
 
 ---
 
-## 🚀 Getting Started
+## Running Locally
 
-### Prerequisites
+### What You Need
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **Go** | ≥ 1.21 | Backend API server |
-| **Node.js** | ≥ 18 | Frontend build tooling |
-| **Redis** | ≥ 7.0 | Job queue, caching, deduplication |
-| **MongoDB** | ≥ 6.0 | User storage, activity logs |
+| Tool | Version | What For |
+|------|---------|----------|
+| Go | ≥ 1.21 | Backend API server |
+| Node.js | ≥ 18 | Chatbot service + frontend tooling |
+| Redis | ≥ 7.0 | Job queue, caching, deduplication |
+| MongoDB | ≥ 6.0 | User storage, registrations |
+| ChromaDB | latest | Vector store for the chatbot |
 
-### 1. Clone the Repository
+### 1. Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/DevFlow.git
-cd DevFlow
+git clone https://github.com/Soham271/DevScheduler.git
+cd DevScheduler
 ```
 
-### 2. Backend Setup
+### 2. Start Infrastructure
+
+```bash
+# Option A: Using Docker
+docker-compose up -d mongodb redis
+
+# Option B: Manually
+redis-server          # terminal 1
+mongod                # terminal 2
+chroma run            # terminal 3 (for chatbot)
+```
+
+### 3. Backend
 
 ```bash
 cd Backend
-
-# Install Go dependencies
 go mod tidy
-
-# Create your .env file
-cp .env.example .env
-# Edit .env with your credentials (see Environment Variables below)
-
-# Start Redis (in a separate terminal)
-redis-server
-
-# Start MongoDB (in a separate terminal)
-mongod
-
-# Run the server
+# Create .env (see below)
 go run main.go
 ```
 
-The server will start on `http://localhost:8080`.
+Server starts on `http://localhost:8080`.
 
-### 3. Frontend Setup
+### 4. Chatbot Service
+
+```bash
+cd chat-bot
+npm install
+# Create .env with GEMINI_API_KEY
+node app.js
+```
+
+Chatbot starts on `http://localhost:3001`.
+
+### 5. Frontend
 
 ```bash
 cd Frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-The frontend will start on `http://localhost:5173`.
+Frontend starts on `http://localhost:5173`.
 
-### Environment Variables
-
-Create a `.env` file in `Backend/` with the following:
+### Backend Environment Variables (`Backend/.env`)
 
 ```env
-# ── Core ────────────────────────────────────────
+# Auth
 EMAIL_SENDER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password          # Gmail App Password (not your login password)
-JWT_SECRET=your-super-secret-key
+EMAIL_PASSWORD=your-gmail-app-password     # Not your login password — generate at https://myaccount.google.com/apppasswords
+JWT_SECRET=pick-something-long-and-random
+
+# Database
 MONGO_URI=mongodb://localhost:27017/devscheduler
 
-# ── Google OAuth ────────────────────────────────
+# Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id
 
-# ── AI (Optional — for future features) ────────
+# AI (used by Go backend for analysis features)
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your-gemini-api-key
-AI_MODEL=gemini-1.5-flash
-
-# ── RAG / Vector DB (Optional) ─────────────────
-PINECONE_API_KEY=your-pinecone-key
-PINECONE_INDEX_URL=your-pinecone-url
-EMBEDDING_PROVIDER=gemini
-EMBEDDING_MODEL=text-embedding-004
-EMBEDDING_DIM=768
-RAG_TOP_K=5
+AI_MODEL=gemini-2.5-flash
 ```
 
-> **Note:** For Gmail, you need to generate an [App Password](https://myaccount.google.com/apppasswords) (requires 2FA enabled).
+### Chatbot Environment Variables (`chat-bot/.env`)
+
+```env
+GEMINI_API_KEY=your-gemini-api-key
+OPENROUTER_API_KEY=your-openrouter-key     # optional fallback
+```
 
 ---
 
-## 📡 API Reference
+## API Endpoints
 
-### Authentication
+### Auth (no token required)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/signup` | ❌ | Register with email & password |
-| `POST` | `/login` | ❌ | Login → JWT token |
-| `POST` | `/auth/google` | ❌ | Google OAuth sign-in |
+| Method | Endpoint | What It Does |
+|--------|----------|-------------|
+| POST | `/signup` | Register with email + password |
+| POST | `/login` | Login → returns JWT |
+| POST | `/auth/google` | Google OAuth sign-in |
 
-### Platform Intelligence
+### Platform Analysis (requires JWT)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/platforms/leetcode/analyze` | ✅ | Full LeetCode profile analysis |
-| `POST` | `/platforms/codeforces/analyze` | ✅ | Full Codeforces profile analysis |
-| `POST` | `/platforms/codechef/analyze` | ✅ | Full CodeChef profile analysis |
-| `POST` | `/platforms/gfg/analyze` | ✅ | Full GeeksForGeeks profile analysis |
-| `GET` | `/platforms/leetcode/profile` | ❌ | LeetCode profile data |
-| `GET` | `/platforms/leetcode/heatmap` | ❌ | Submission calendar + streaks |
-| `GET` | `/platforms/leetcode/submissions` | ❌ | Recent submission list |
-| `GET` | `/platforms/leetcode/contests` | ❌ | Contest history + ratings |
+| Method | Endpoint | What It Does |
+|--------|----------|-------------|
+| POST | `/platforms/leetcode/analyze` | Full LeetCode profile + analysis |
+| POST | `/platforms/codeforces/analyze` | Full Codeforces profile + analysis |
+| POST | `/platforms/codechef/analyze` | Full CodeChef profile + analysis |
+| POST | `/platforms/gfg/analyze` | Full GFG profile + analysis |
+| POST | `/platforms/github/analyze` | GitHub activity analysis |
 
-### User Management
+### LeetCode Detail Endpoints (public)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/register/:platform/:username` | ✅ | Register handle for monitoring |
-| `POST` | `/user/profile` | ✅ | Update user profile |
-| `GET` | `/users` | ❌ | List all registered users |
+| Method | Endpoint | What It Does |
+|--------|----------|-------------|
+| GET | `/platforms/leetcode/profile?username=X` | Profile data |
+| GET | `/platforms/leetcode/heatmap?username=X` | Submission calendar + streaks |
+| GET | `/platforms/leetcode/submissions?username=X` | Recent submissions |
+| GET | `/platforms/leetcode/contests?username=X` | Contest history + rating changes |
 
-### Activity Feed
+### User Management (requires JWT)
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/activities` | ❌ | Fetch activity history |
-| `GET` | `/activities/stream` | ❌ | SSE real-time stream |
-| `POST` | `/activities/:id/read` | ✅ | Mark activity as read |
-| `POST` | `/activities/clear` | ✅ | Clear all activities |
+| Method | Endpoint | What It Does |
+|--------|----------|-------------|
+| POST | `/register/:platform/:username` | Register a handle for monitoring (body: `{"email": "..."}`) |
+| POST | `/user/profile` | Update user profile |
+| POST | `/chat` | Proxy to chatbot service |
+| POST | `/schedule-email` | Schedule a delayed email |
+| POST | `/send-email` | Send an email immediately |
 
-### Scheduler
+### Public Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/schedule-email` | ✅ | Schedule a delayed email |
-| `GET` | `/contests/:platform` | ❌ | Get upcoming contests |
+| Method | Endpoint | What It Does |
+|--------|----------|-------------|
+| GET | `/users` | List all registered users |
+| GET | `/contests/:platform` | Upcoming contests (`all`, `leetcode`, `codeforces`, etc.) |
+| GET | `/activities` | Activity feed history |
+| GET | `/activities/stream` | SSE real-time stream |
+| GET | `/health` | Health check |
 
 ---
 
-## ⚙️ Redis Key Strategy
-
-DevFlow uses Redis extensively for state management and deduplication:
+## Redis Key Patterns
 
 ```
-Key Pattern                                      │ Purpose
-─────────────────────────────────────────────────┼──────────────────────────
-registered_user:{platform}:{username}            │ Stores user email
+Key                                              │ What It Stores
+─────────────────────────────────────────────────┼─────────────────────────────
+registered_user:{platform}:{username}            │ JSON with email, timestamps
 user_activity:{platform}:{username}              │ Last known solve count
-inactivity_count:{platform}:{username}           │ Reminders sent today (0-8)
-inactivity_date:{platform}:{username}            │ Current tracking date
+inactivity_count:{platform}:{username}           │ How many reminders sent today
+inactivity_date:{platform}:{username}            │ Current tracking date (resets daily)
 last_reminder_sent:{platform}:{username}         │ Unix timestamp of last email
-contest_reminder_sent:{platform}:{contest}:{min} │ Dedup flag per countdown slot
-github_last_event:{username}                     │ Last processed GitHub event ID
-jobs (Sorted Set)                                │ Scheduled jobs (score = timestamp)
+contest_reminder_sent:{platform}:{contest}:{min} │ Dedup flag (prevents double-sends)
+jobs (Sorted Set)                                │ Scheduled jobs (score = run timestamp)
 ```
 
 ---
 
-## 🎨 Design Philosophy
+## Monitoring Intervals
 
-- **Premium SaaS Aesthetic** — Amber/orange brand palette, glassmorphism cards, smooth Framer Motion transitions.
-- **Platform-Specific Theming** — Each platform page has its own gradient accent:
-  - 🟠 LeetCode → Orange/Amber
-  - 🔵 Codeforces → Blue/Cyan
-  - 🟡 CodeChef → Gold/Amber
-  - 🟢 GeeksForGeeks → Green/Emerald
-- **Collapsible Sections** — Recent Submissions and Contest History default to collapsed state for a clean UI.
-- **Deep Linking** — Dashboard analysis results link directly to platform pages with auto-analyze state propagation.
-
----
-
-## 🔧 Tech Stack
-
-### Backend
-| Technology | Usage |
-|------------|-------|
-| **Go (Gin)** | REST API framework |
-| **Redis** | Job queue, caching, state management |
-| **MongoDB** | User storage, activity persistence |
-| **Colly** | Web scraping (CodeChef, GFG) |
-| **JWT** | Authentication tokens |
-| **bcrypt** | Password hashing |
-| **Gmail SMTP** | Email dispatch |
-| **SSE** | Real-time activity broadcasting |
-
-### Frontend
-| Technology | Usage |
-|------------|-------|
-| **React 19** | UI framework |
-| **Vite 5** | Build tool & dev server |
-| **Tailwind CSS v4** | Utility-first styling |
-| **Framer Motion** | Animations & transitions |
-| **Lucide React** | Icon library |
-| **React Router v6** | Client-side routing |
+| What | How Often | Where |
+|------|-----------|-------|
+| Inactivity check | Every 1 minute (after 10 AM IST) | `events/mointor.go` |
+| Reminder throttle | 60 min (before 8 PM), 15 min (after 8 PM) | `events/mointor.go` |
+| Max reminders/day | 50 | `services/redis_keys.go` |
+| User analysis | Every 5 minutes | `events/mointor.go` |
+| Contest countdown | Every 1 minute | `events/mointor.go` |
+| GitHub polling | Every 10 minutes | `events/mointor.go` |
+| Job scheduler poll | Every 30 seconds | `scheduler/engine.go` |
+| Worker pool | 5 goroutines | `main.go` |
 
 ---
 
-## 📊 Monitoring Configuration
+## Tech Stack
 
-| Parameter | Value | Location |
-|-----------|-------|----------|
-| Inactivity check start | 5:00 PM IST | `events/mointor.go` |
-| Reminder interval | Every 60 minutes | `services/redis_keys.go` |
-| Max reminders per day | 8 | `services/redis_keys.go` |
-| User analysis frequency | Every 5 minutes | `events/mointor.go` |
-| Contest check frequency | Every 1 minute | `events/mointor.go` |
-| GitHub polling interval | Every 10 minutes | `events/mointor.go` |
-| Worker pool size | 5 goroutines | `main.go` |
-| Scheduler poll interval | Every 1 second | `scheduler/engine.go` |
+**Backend:** Go 1.26, Gin, Redis, MongoDB, Colly (web scraping), JWT, bcrypt, Gmail SMTP, Server-Sent Events
+
+**Frontend:** React 19, Vite 5, Tailwind CSS v4, Framer Motion, Lucide React, React Router v6
+
+**Chatbot:** Node.js, Express, OpenAI SDK (Gemini-compatible), ChromaDB, Cheerio
+
+**Infra:** Docker Compose, ChromaDB (vector store)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork the repo
+2. Create a branch (`git checkout -b feature/your-thing`)
+3. Make your changes, commit them
+4. Push and open a PR
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+MIT — do whatever you want with it.
 
 ---
 
 <p align="center">
-  <strong>Built with ❤️ by <a href="https://github.com/YOUR_USERNAME">Soham</a></strong>
-</p>
-
-<p align="center">
-  <sub>If you found this project helpful, please consider giving it a ⭐!</sub>
+  Built by <a href="https://github.com/Soham271">Soham</a>
 </p>

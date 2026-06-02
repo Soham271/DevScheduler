@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// JWTAuth returns a Gin middleware that validates JWT tokens.
-// It reads the token from the "Authorization: Bearer <token>" header,
-// validates it, and sets "user_email" in the request context.
+
+
+
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -23,7 +23,7 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		// Expect "Bearer <token>"
+		
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -42,7 +42,7 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		// Extract email from claims and set in context
+		
 		email, ok := claims["email"].(string)
 		if !ok || email == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

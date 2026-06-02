@@ -11,13 +11,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  LeetCode Intelligence Handler
-//  Handles all dedicated LeetCode platform endpoints.
-// ═══════════════════════════════════════════════════════════════
 
-// LeetCodeAnalyze handles POST /platforms/leetcode/analyze
-// Fetches comprehensive LeetCode profile data for the intelligence page.
+
+
+
+
+
+
 func LeetCodeAnalyze(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
@@ -51,7 +51,7 @@ func LeetCodeAnalyze(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// LeetCodeGetProfile handles GET /platforms/leetcode/profile?username=xxx
+
 func LeetCodeGetProfile(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := c.Query("username")
@@ -74,7 +74,7 @@ func LeetCodeGetProfile(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// LeetCodeGetHeatmap handles GET /platforms/leetcode/heatmap?username=xxx
+
 func LeetCodeGetHeatmap(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := c.Query("username")
@@ -102,7 +102,7 @@ func LeetCodeGetHeatmap(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// LeetCodeGetSubmissions handles GET /platforms/leetcode/submissions?username=xxx
+
 func LeetCodeGetSubmissions(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := c.Query("username")
@@ -126,7 +126,7 @@ func LeetCodeGetSubmissions(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// LeetCodeGetContests handles GET /platforms/leetcode/contests?username=xxx
+
 func LeetCodeGetContests(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username := c.Query("username")

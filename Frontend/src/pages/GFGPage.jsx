@@ -8,9 +8,9 @@ import {
   Zap, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Search, Star, Globe, MapPin, Award, Code2, GraduationCap
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
-//  Stats Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)]', icon: Icon }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
     className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-5 hover:shadow-[var(--shadow-subtle)] transition-shadow group">
@@ -23,9 +23,9 @@ const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Main GeeksForGeeks Intelligence Page
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const GFGPage = () => {
   const stored = getLocalProfile();
   const [username, setUsername] = useState(stored?.gfg_username || '');
@@ -60,7 +60,7 @@ const GFGPage = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col gap-5 animate-fade-in-up">
-      {/* Header */}
+      {}
       <motion.header initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="bg-[var(--color-canvas-white)] rounded-[12px] shadow-[var(--shadow-subtle-3)] border border-[var(--color-ash-gray)] p-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--color-charcoal)]" />
@@ -78,7 +78,7 @@ const GFGPage = () => {
         </div>
       </motion.header>
 
-      {/* Analyze */}
+      {}
       <section className="bg-[var(--color-canvas-white)] rounded-[12px] shadow-[var(--shadow-subtle-3)] border border-[var(--color-ash-gray)] p-6">
         <div className="mb-4">
           <span className="flex items-center gap-1 text-xs font-bold text-green-500 uppercase tracking-wider"><Zap size={12} /> GFG Analysis</span>
@@ -105,12 +105,12 @@ const GFGPage = () => {
         )}
       </section>
 
-      {/* Results */}
+      {}
       <AnimatePresence>
         {profile && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-5">
             
-            {/* Institute Banner */}
+            {}
             {profile.institute && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center gap-4">
@@ -127,7 +127,7 @@ const GFGPage = () => {
               </div>
             )}
 
-            {/* Stats Grid */}
+            {}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <StatCard icon={Award} label="Coding Score" value={profile.coding_score || 0} subtitle="Overall score" color="text-green-600" />
               <StatCard icon={Trophy} label="Problems Solved" value={profile.total_solved || 0} subtitle="Total problems" />
@@ -135,7 +135,7 @@ const GFGPage = () => {
               <StatCard icon={TrendingUp} label="Monthly Coding" value={profile.monthly_coding || 0} subtitle="Score this month" color="text-blue-500" />
             </div>
 
-            {/* Difficulty Breakdown */}
+            {}
             {(profile.easy_solved > 0 || profile.medium_solved > 0 || profile.hard_solved > 0) && (
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-4 rounded-[12px] bg-emerald-50/50 border border-emerald-100">
@@ -153,7 +153,7 @@ const GFGPage = () => {
               </div>
             )}
 
-            {/* Languages Used */}
+            {}
             {profile.languages_used?.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <h3 className="text-base font-bold text-[var(--color-charcoal)] mb-4 flex items-center gap-2">

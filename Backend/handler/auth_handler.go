@@ -8,14 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthRequest represents the signup/login request body.
+
 type AuthRequest struct {
 	Email    string `json:"email"    binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
-// Signup handles POST /signup
-// Creates a new user with hashed password.
+
+
 func Signup() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req AuthRequest
@@ -41,8 +41,8 @@ func Signup() gin.HandlerFunc {
 	}
 }
 
-// Login handles POST /login
-// Authenticates user and returns a JWT token.
+
+
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req AuthRequest
@@ -70,17 +70,17 @@ func Login() gin.HandlerFunc {
 	}
 }
 
-// ──────────────────────────────────────────────
-// Google OAuth
-// ──────────────────────────────────────────────
 
-// GoogleLoginRequest represents the POST /auth/google request body.
+
+
+
+
 type GoogleLoginRequest struct {
 	IDToken string `json:"id_token" binding:"required"`
 }
 
-// GoogleLogin handles POST /auth/google
-// Verifies the Google ID token, creates/finds the user, and returns a JWT.
+
+
 func GoogleLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req GoogleLoginRequest

@@ -6,7 +6,7 @@ import { processAuthResponse } from "../utils/auth";
 import GoogleAuthButton from "./GoogleAuthButton";
 
 const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
-  const [mode, setMode] = useState("login"); // 'login' or 'signup'
+  const [mode, setMode] = useState("login"); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,7 +23,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
     }
   }, [isOpen]);
 
-  // Prevent body scroll when modal is open
+  
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -101,7 +101,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(250, 242, 236, 0.7)", // Buttermilk tinted
+            background: "rgba(250, 242, 236, 0.7)", 
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
             padding: "1rem",
@@ -124,7 +124,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               boxShadow: "var(--shadow-subtle-3)",
             }}
           >
-            {/* Close button */}
+            {}
             <button
               onClick={onClose}
               style={{
@@ -155,7 +155,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               <X size={18} />
             </button>
 
-            {/* Mode tabs */}
+            {}
             <div
               style={{
                 display: "flex",
@@ -199,7 +199,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               ))}
             </div>
 
-            {/* Error */}
+            {}
             <AnimatePresence>
               {error && (
                 <motion.div
@@ -222,7 +222,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               )}
             </AnimatePresence>
 
-            {/* Form */}
+            {}
             <form onSubmit={mode === "login" ? handleLogin : handleSignup}>
               <div style={{ marginBottom: "1rem" }}>
                 <label
@@ -315,7 +315,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 />
               </div>
 
-              {/* Confirm password for signup */}
+              {}
               <AnimatePresence>
                 {mode === "signup" && (
                   <motion.div
@@ -370,7 +370,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 )}
               </AnimatePresence>
 
-              {/* Submit */}
+              {}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -402,7 +402,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </motion.button>
             </form>
 
-            {/* Divider */}
+            {}
             <div
               style={{
                 display: "flex",
@@ -438,7 +438,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               />
             </div>
 
-            {/* Google */}
+            {}
             <GoogleAuthButton
               onSuccess={handleAuthResponse}
               onError={(err) =>

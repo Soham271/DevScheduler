@@ -59,7 +59,7 @@ const Profile = () => {
 
   const handleChange = (field, value) => {
     let cleanValue = value.trim();
-    // Auto-extract username if a full URL is pasted (e.g. https://github.com/Soham271 -> Soham271)
+    
     if (cleanValue.includes('/') && (field.includes('username') || field.includes('handle'))) {
       cleanValue = cleanValue.split('/').filter(Boolean).pop();
     }

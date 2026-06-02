@@ -18,7 +18,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// CreateJob handles the POST /jobs request (legacy endpoint, kept for backward compat)
+
 func CreateJob(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var newJob model.Job
@@ -86,7 +86,7 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Step 1: Fetch user profile (includes today's submission count for LeetCode)
+		
 		profile, err := services.FetchUserProfile(platform, username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -118,13 +118,13 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Step 3: User is active (or not LeetCode) — run full analysis
+		
 		result := services.AnalyzeUser(profile)
 
-		// Step 4: Queue a background job via the event system
+		
 		go events.HandleUserAnalysis(rdb, platform, username)
 
-		// Step 5: Return the full analysis result
+		
 		c.JSON(http.StatusOK, gin.H{
 			"message":           "Analysis complete",
 			"is_inactive_today": profile.IsInactiveToday,
@@ -134,15 +134,15 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// RegisterRequest holds the email for user registration.
+
 type RegisterRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-// RegisterUser handles POST /register/:platform/:username
-// It registers a user for periodic monitoring by the background monitors.
-// Request body: {"email": "user@gmail.com"}
-// The email is stored as the value so the notification system can look it up.
+
+
+
+
 func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		platform := c.Param("platform")
@@ -202,8 +202,8 @@ func RegisterUser(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// ListUsers handles GET /users
-// It returns all registered users being monitored.
+
+
 func ListUsers(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		users := events.GetRegisteredUsers(rdb)
@@ -237,8 +237,8 @@ func ListUsers(rdb *redis.Client) gin.HandlerFunc {
 	}
 }
 
-// GetContests handles GET /contests/:platform
-// It returns upcoming contests with countdown timers.
+
+
 func GetContests(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		platform := c.Param("platform")

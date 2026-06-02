@@ -22,8 +22,8 @@ func EnsureUserIndexes() {
 
 	_, err := config.UserCollection.Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
-		// Just log the error, don't crash
-		// log.Println("Failed to create email index:", err)
+		
+		
 	}
 
 	monitoringUniqueIndex := mongo.IndexModel{
@@ -56,7 +56,7 @@ func GetUserByEmail(email string) (*model.User, error) {
 	err := config.UserCollection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, nil // Not found
+			return nil, nil 
 		}
 		return nil, err
 	}

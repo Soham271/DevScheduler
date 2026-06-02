@@ -16,7 +16,7 @@ func handleLeetCodeDaily(job model.Job) {
 	}
 
 	fmt.Printf("🔍 [LeetCode Daily] Checking status for %s...\n", payload.Username)
-	// delay of 1 second to simulate the checking process
+	
 	time.Sleep(1 * time.Second)
 
 	hasSolvedToday := false

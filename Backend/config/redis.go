@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Initialize a background context for Redis
+
 var Ctx = context.Background()
 
 func ConnectRedis() *redis.Client {
@@ -21,7 +21,7 @@ func ConnectRedis() *redis.Client {
 		Addr: redisAddr,
 	})
 
-	// Ping Redis to ensure the connection is alive
+	
 	_, err := client.Ping(Ctx).Result()
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)

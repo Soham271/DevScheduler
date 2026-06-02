@@ -17,7 +17,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// IST location for today's submission check
+
 var leetcodeIST *time.Location
 
 func init() {
@@ -28,8 +28,8 @@ func init() {
 	}
 }
 
-// FetchUserProfile is the single entry point for getting user data.
-// It tries the real API first; if that fails, it falls back to deterministic mock data.
+
+
 func FetchUserProfile(platform, username string) (*model.UserProfile, error) {
 	switch platform {
 	case "leetcode":
@@ -69,11 +69,11 @@ func FetchUserProfile(platform, username string) (*model.UserProfile, error) {
 	}
 }
 
-// fetchFromLeetCodeAPI uses the LeetCode GraphQL endpoint for problem stats,
-// the contest ranking API for the real contest rating,
-// and recentSubmissionList for today's activity check.
+
+
+
 func fetchFromLeetCodeAPI(username string) (*model.UserProfile, error) {
-	// --- Step 1: Fetch problem stats via GraphQL ---
+	
 	query := fmt.Sprintf(`{
 		"query": "query { matchedUser(username: \"%s\") { submitStats { acSubmissionNum { count } } } }"
 	}`, username)
@@ -111,10 +111,10 @@ func fetchFromLeetCodeAPI(username string) (*model.UserProfile, error) {
 		totalSolved = result.Data.MatchedUser.SubmitStats.AcSubmissionNum[0].Count
 	}
 
-	// --- Step 2: Fetch real contest rating via the contest API ---
+	
 	contestRating := fetchLeetCodeContestRating(username)
 
-	// --- Step 3: Fetch today's submissions via recentSubmissionList ---
+	
 	submissionsToday := FetchLeetCodeTodaySubmissions(username)
 	hasSubmittedToday := submissionsToday > 0
 
@@ -125,15 +125,15 @@ func fetchFromLeetCodeAPI(username string) (*model.UserProfile, error) {
 		Rating:           contestRating,
 		SubmissionsToday: hasSubmittedToday,
 		IsInactiveToday:  !hasSubmittedToday,
-		LastActiveAt:     time.Now(), // kept for backward compat, but NOT used for inactivity
+		LastActiveAt:     time.Now(), 
 		FetchedAt:        time.Now(),
 		IsMockData:       false,
 	}, nil
 }
 
-// FetchLeetCodeTodaySubmissions uses the recentSubmissionList GraphQL query
-// to count how many accepted submissions the user has made TODAY (IST).
-// This is the source of truth for LeetCode inactivity — no timestamp guessing.
+
+
+
 func FetchLeetCodeTodaySubmissions(username string) int {
 	query := fmt.Sprintf(`{
 		"query": "query recentSubmissions($username: String!, $limit: Int!) { recentSubmissionList(username: $username, limit: $limit) { title timestamp statusDisplay } }",
@@ -164,20 +164,20 @@ func FetchLeetCodeTodaySubmissions(username string) int {
 		return 0
 	}
 
-	// Get today's date in IST
+	
 	now := time.Now().In(leetcodeIST)
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, leetcodeIST)
 
 	count := 0
 	for _, sub := range result.Data.RecentSubmissionList {
-		// Parse the unix timestamp string
+		
 		ts, err := strconv.ParseInt(sub.Timestamp, 10, 64)
 		if err != nil {
 			continue
 		}
 		subTime := time.Unix(ts, 0).In(leetcodeIST)
 
-		// Only count accepted submissions from today (IST)
+		
 		if subTime.After(todayStart) && sub.StatusDisplay == "Accepted" {
 			count++
 		}
@@ -187,9 +187,9 @@ func FetchLeetCodeTodaySubmissions(username string) int {
 	return count
 }
 
-// fetchLeetCodeContestRating calls the LeetCode contest ranking API to get the
-// real contest rating (e.g., 1872) instead of the global rank.
-// Falls back to 1500 if the API fails or the user has no contest history.
+
+
+
 func fetchLeetCodeContestRating(username string) int {
 	const defaultRating = 1500
 
@@ -268,7 +268,7 @@ func fetchFromCodeChefAPI(username string) (*model.UserProfile, error) {
 		TotalSolved:      solved,
 		Rating:           rating,
 		SubmissionsToday: false,
-		IsInactiveToday:  false, // CodeChef inactivity not tracked
+		IsInactiveToday:  false, 
 		LastActiveAt:     time.Now(),
 		FetchedAt:        time.Now(),
 		IsMockData:       false,
@@ -322,8 +322,8 @@ func fetchFromCodeforcesAPI(u string) (*model.UserProfile, error) {
 	}, nil
 }
 
-// fetchCFSubmissionsData fetches ALL submissions to calculate total unique solved problems
-// and today's accepted submissions. Used during manual profile analysis.
+
+
 func fetchCFSubmissionsData(u string) (int, int) {
 	r, e := http.Get(fmt.Sprintf("https://codeforces.com/api/user.status?handle=%s", u))
 	if e != nil {
@@ -471,19 +471,19 @@ func procData(n int) int {
 	return rs
 }
 
-// The same username always produces the same profile, making tests reproducible.
+
 func generateMockProfile(platform, username string) *model.UserProfile {
-	// Seed RNG deterministically from the username
+	
 	h := fnv.New64a()
 	h.Write([]byte(username))
 	rng := rand.New(rand.NewSource(int64(h.Sum64())))
 
-	totalSolved := rng.Intn(800) + 10 // 10 to 810
-	rating := rng.Intn(2500) + 800    // 800 to 3300
-	hoursAgo := rng.Intn(72)          // last active 0-72 hours ago
+	totalSolved := rng.Intn(800) + 10 
+	rating := rng.Intn(2500) + 800    
+	hoursAgo := rng.Intn(72)          
 
-	// Mock: randomly determine if the user solved something today
-	submissionsToday := rng.Intn(3) > 0 // true if submitted today
+	
+	submissionsToday := rng.Intn(3) > 0 
 
 	return &model.UserProfile{
 		Username:         username,

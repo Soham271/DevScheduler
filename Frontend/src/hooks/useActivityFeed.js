@@ -3,14 +3,7 @@ import { api } from '../services/api';
 
 const API_BASE = 'http://localhost:8080';
 
-/**
- * useActivityFeed — Custom hook for the live activity feed.
- * 
- * - Fetches initial activities via GET /activities
- * - Opens an EventSource (SSE) to GET /activities/stream
- * - Prepends new activities to state in real time
- * - Provides mark-as-read, clear-all, and load-more actions
- */
+
 export function useActivityFeed(limit = 20) {
   const [activities, setActivities] = useState([]);
   const [total, setTotal] = useState(0);
@@ -18,7 +11,7 @@ export function useActivityFeed(limit = 20) {
   const [loadingMore, setLoadingMore] = useState(false);
   const eventSourceRef = useRef(null);
 
-  // Fetch initial activities
+  
   const fetchInitial = useCallback(async () => {
     setLoading(true);
     try {
@@ -32,7 +25,7 @@ export function useActivityFeed(limit = 20) {
     }
   }, [limit]);
 
-  // Load more activities (pagination)
+  
   const loadMore = useCallback(async () => {
     if (loadingMore) return;
     setLoadingMore(true);
@@ -51,7 +44,7 @@ export function useActivityFeed(limit = 20) {
     }
   }, [activities.length, limit, loadingMore]);
 
-  // Mark a single activity as read
+  
   const markAsRead = useCallback(async (id) => {
     try {
       await api.markActivityRead(id);
@@ -63,7 +56,7 @@ export function useActivityFeed(limit = 20) {
     }
   }, []);
 
-  // Clear all activities
+  
   const clearAll = useCallback(async () => {
     try {
       await api.clearActivities();
@@ -74,18 +67,18 @@ export function useActivityFeed(limit = 20) {
     }
   }, []);
 
-  // SSE connection for real-time updates
+  
   useEffect(() => {
     fetchInitial();
 
-    // Open SSE connection
+    
     const es = new EventSource(`${API_BASE}/activities/stream`);
     eventSourceRef.current = es;
 
     es.onmessage = (event) => {
       try {
         const activity = JSON.parse(event.data);
-        // Prepend the new activity to the top of the list
+        
         setActivities(prev => [activity, ...prev]);
         setTotal(prev => prev + 1);
       } catch (err) {
@@ -97,7 +90,7 @@ export function useActivityFeed(limit = 20) {
       console.warn('[ActivityFeed] SSE connection error — will auto-reconnect');
     };
 
-    // Cleanup on unmount
+    
     return () => {
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
@@ -106,7 +99,7 @@ export function useActivityFeed(limit = 20) {
     };
   }, [fetchInitial]);
 
-  // Computed values
+  
   const unreadCount = activities.filter(a => !a.read).length;
   const hasMore = activities.length < total;
 

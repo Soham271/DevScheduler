@@ -61,7 +61,7 @@ const OnboardingModal = ({ onComplete }) => {
       <div className="w-full max-w-lg bg-[var(--color-canvas-white)] rounded-[20px] shadow-[var(--shadow-subtle)] p-8 relative overflow-hidden animate-scale-in border border-[var(--color-ash-gray)]">
         <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--color-slate-blue)]" />
 
-        {/* Step dots */}
+        {}
         <div className="flex justify-center gap-2 mb-6">
           <div className={`h-2 rounded-full transition-all ${step === 1 ? 'w-6 bg-[var(--color-charcoal)]' : 'w-2 bg-[var(--color-ash-gray)]'}`} />
           <div className={`h-2 rounded-full transition-all ${step === 2 ? 'w-6 bg-[var(--color-charcoal)]' : 'w-2 bg-[var(--color-ash-gray)]'}`} />

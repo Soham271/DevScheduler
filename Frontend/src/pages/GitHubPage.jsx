@@ -11,9 +11,9 @@ import {
   GitFork, XCircle, CheckCircle2, FolderGit2
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
-//  Stats Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)]', icon: Icon, accentColor = 'text-slate-500' }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
     className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-5 hover:shadow-[var(--shadow-subtle)] transition-shadow group">
@@ -26,26 +26,26 @@ const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Contribution Graph (GitHub-style heatmap)
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const ContributionGraph = ({ contributions, totalContributions }) => {
   const { weeks, months } = useMemo(() => {
     if (!contributions || contributions.length === 0) return { weeks: [], months: [] };
 
-    // Sort by date
+    
     const sorted = [...contributions].sort((a, b) => a.date.localeCompare(b.date));
 
-    // Group into weeks (columns)
+    
     const weekData = [];
     let currentWeek = [];
 
     sorted.forEach((day, index) => {
       const d = new Date(day.date);
-      const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
+      const dayOfWeek = d.getDay(); 
 
       if (index === 0 && dayOfWeek > 0) {
-        // Pad the first week
+        
         for (let i = 0; i < dayOfWeek; i++) {
           currentWeek.push(null);
         }
@@ -59,7 +59,7 @@ const ContributionGraph = ({ contributions, totalContributions }) => {
       }
     });
 
-    // Extract month labels
+    
     const monthLabels = [];
     let lastMonth = -1;
     weekData.forEach((week, weekIndex) => {
@@ -80,11 +80,11 @@ const ContributionGraph = ({ contributions, totalContributions }) => {
   }, [contributions]);
 
   const levelColors = [
-    'bg-[var(--color-ash-gray)]',       // 0 - no contributions
-    'bg-emerald-200',    // 1
-    'bg-emerald-400',    // 2
-    'bg-emerald-500',    // 3
-    'bg-emerald-700',    // 4
+    'bg-[var(--color-ash-gray)]',       
+    'bg-emerald-200',    
+    'bg-emerald-400',    
+    'bg-emerald-500',    
+    'bg-emerald-700',    
   ];
 
   const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
@@ -102,7 +102,7 @@ const ContributionGraph = ({ contributions, totalContributions }) => {
 
       <div className="overflow-x-auto pb-2">
         <div className="inline-flex flex-col gap-0.5" style={{ minWidth: 'max-content' }}>
-          {/* Month labels */}
+          {}
           <div className="relative h-4 ml-[30px] mb-1">
             {months.map((m, i) => (
               <div key={i} className="absolute text-[10px] text-[var(--color-cool-gray)] font-medium"
@@ -113,7 +113,7 @@ const ContributionGraph = ({ contributions, totalContributions }) => {
           </div>
 
           <div className="flex gap-0">
-            {/* Day labels */}
+            {}
             <div className="flex flex-col gap-0.5 mr-1.5 pt-0.5">
               {dayLabels.map((label, i) => (
                 <div key={i} className="text-[10px] text-[var(--color-cool-gray)] font-medium h-[11px] w-6 flex items-center">
@@ -122,7 +122,7 @@ const ContributionGraph = ({ contributions, totalContributions }) => {
               ))}
             </div>
 
-            {/* Grid */}
+            {}
             <div className="flex gap-0.5">
               {weeks.map((week, weekIdx) => (
                 <div key={weekIdx} className="flex flex-col gap-0.5">
@@ -299,9 +299,9 @@ const RepoCard = ({ repo }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Main GitHub Intelligence Page
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const GitHubPage = () => {
   const stored = getLocalProfile();
   const [username, setUsername] = useState(stored?.github_username || '');
@@ -433,7 +433,7 @@ const GitHubPage = () => {
               </div>
             </div>
 
-            {/* Stats Grid */}
+            {}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <StatCard icon={FolderGit2} label="Repositories" value={profile.public_repos} subtitle="Public repos" color="text-slate-700" />
               <StatCard icon={Users} label="Followers" value={profile.followers} subtitle={`Following ${profile.following}`} color="text-blue-600" />
@@ -441,13 +441,13 @@ const GitHubPage = () => {
               <StatCard icon={GitPullRequest} label="Pull Requests" value={profile.total_prs} subtitle={`${profile.merged_prs} merged`} color="text-purple-600" />
             </div>
 
-            {/* Contribution Graph */}
+            {}
             <ContributionGraph
               contributions={profile.contribution_graph}
               totalContributions={profile.total_contributions || 0}
             />
 
-            {/* PR Stats */}
+            {}
             <PRStatsCard
               openPRs={profile.open_prs}
               mergedPRs={profile.merged_prs}
@@ -455,7 +455,7 @@ const GitHubPage = () => {
               totalPRs={profile.total_prs}
             />
 
-            {/* Top Languages */}
+            {}
             {profile.top_languages?.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -484,7 +484,7 @@ const GitHubPage = () => {
               </div>
             )}
 
-            {/* Recent Repos */}
+            {}
             {profile.recent_repos?.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between">

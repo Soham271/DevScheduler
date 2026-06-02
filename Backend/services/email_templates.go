@@ -2,11 +2,11 @@ package services
 
 import "fmt"
 
-// ═══════════════════════════════════════════════════════════════
-//  Email Template Builders
-//  These functions generate formatted plain-text email bodies
-//  for the three notification job types.
-// ═══════════════════════════════════════════════════════════════
+
+
+
+
+
 
 const emailFooter = `
 ---
@@ -14,9 +14,9 @@ const emailFooter = `
 This is an automated email. Do not reply to this message.
 `
 
-// ─── Delayed Email ──────────────────────────────────────────
 
-// BuildDelayedEmailBody wraps the user's custom email body with a header and footer.
+
+
 func BuildDelayedEmailBody(subject, body string) string {
 	return fmt.Sprintf(`📬 Scheduled Email — DevFlow Scheduler
 ═══════════════════════════════════════
@@ -26,9 +26,9 @@ func BuildDelayedEmailBody(subject, body string) string {
 %s`, body, emailFooter)
 }
 
-// ─── Inactivity Reminder ────────────────────────────────────
 
-// BuildInactivityReminderSubject generates the email subject for inactivity reminders.
+
+
 func BuildInactivityReminderSubject(username string, reminderNum int) string {
 	if reminderNum == 1 {
 		return fmt.Sprintf("⚠️ %s — You haven't solved anything today!", username)
@@ -36,7 +36,7 @@ func BuildInactivityReminderSubject(username string, reminderNum int) string {
 	return fmt.Sprintf("🔴 Reminder #%d — %s, still no problems solved today!", reminderNum, username)
 }
 
-// BuildInactivityReminderBody generates a motivational reminder email body.
+
 func BuildInactivityReminderBody(username, platform string, reminderNum, totalSolved int) string {
 	urgency := "📌"
 	message := "Don't forget to solve at least one problem today!"
@@ -68,9 +68,9 @@ Hey %s! 👋
 %s`, urgency, username, message, platform, totalSolved, reminderNum, MaxInactivityReminders, MaxInactivityReminders, emailFooter)
 }
 
-// ─── Contest Reminder ───────────────────────────────────────
 
-// BuildContestReminderSubject generates the email subject for contest reminders.
+
+
 func BuildContestReminderSubject(contestName string, minutesBefore int) string {
 	if minutesBefore <= 5 {
 		return fmt.Sprintf("🚨 %s starts in %d minute(s)!", contestName, minutesBefore)
@@ -78,7 +78,7 @@ func BuildContestReminderSubject(contestName string, minutesBefore int) string {
 	return fmt.Sprintf("🏁 %s starts in %d minutes!", contestName, minutesBefore)
 }
 
-// BuildContestReminderBody generates a contest reminder email with countdown details.
+
 func BuildContestReminderBody(contestName, platform, startTime, timeRemaining string, minutesBefore int) string {
 	urgency := "📋"
 	action := "Get ready — review your setup and templates."

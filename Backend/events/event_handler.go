@@ -17,7 +17,7 @@ import (
 
 var ctx = context.Background()
 
-// HandleUserAnalysis runs the analysis pipeline and queues a worker job.
+
 func HandleUserAnalysis(rdb *redis.Client, platform, username string) {
 	log.Printf("[Event] Triggering intelligent analysis for %s@%s", username, platform)
 
@@ -47,7 +47,7 @@ func HandleUserAnalysis(rdb *redis.Client, platform, username string) {
 	saveJobToRedis(rdb, newJob)
 }
 
-// HandleContestEvent creates a legacy contest reminder job.
+
 func HandleContestEvent(rdb *redis.Client, platform, contestName, userEmail string, delay time.Duration) {
 	log.Printf("[Event] Contest approaching: %s on %s", contestName, platform)
 
@@ -67,7 +67,7 @@ func HandleContestEvent(rdb *redis.Client, platform, contestName, userEmail stri
 	saveJobToRedis(rdb, newJob)
 }
 
-// HandleUserInactivity creates a legacy LeetCode daily reminder job.
+
 func HandleUserInactivity(rdb *redis.Client, username string) {
 	log.Printf("[Event] User inactivity detected for: %s", username)
 
@@ -78,7 +78,7 @@ func HandleUserInactivity(rdb *redis.Client, username string) {
 	saveJobToRedis(rdb, newJob)
 }
 
-// HandleDelayedEmail creates a one-time delayed email job in Redis.
+
 func HandleDelayedEmail(rdb *redis.Client, to, subject, body string, delay time.Duration) {
 	log.Printf("[Event] Creating delayed email job to %s with delay %s", to, delay)
 
@@ -93,7 +93,7 @@ func HandleDelayedEmail(rdb *redis.Client, to, subject, body string, delay time.
 	saveJobToRedis(rdb, newJob)
 }
 
-// HandleScheduledEmail creates a one-time email job scheduled at an exact datetime.
+
 func HandleScheduledEmail(rdb *redis.Client, to, subject, body string, sendAt time.Time) {
 	log.Printf("[Event] Creating scheduled email job to %s at %s", to, sendAt.Format(time.RFC3339))
 
@@ -108,7 +108,7 @@ func HandleScheduledEmail(rdb *redis.Client, to, subject, body string, sendAt ti
 	saveJobToRedis(rdb, newJob)
 }
 
-// HandleInactivityReminder creates an inactivity reminder job for immediate execution.
+
 func HandleInactivityReminder(rdb *redis.Client, platform, username, email string, reminderNum, totalSolved int) {
 	log.Printf("[Event] Creating inactivity reminder #%d for %s@%s", reminderNum, username, platform)
 
@@ -126,7 +126,7 @@ func HandleInactivityReminder(rdb *redis.Client, platform, username, email strin
 	services.SetLastReminderSent(rdb, platform, username)
 }
 
-// HandleContestReminderEvent creates a contest reminder job if the slot is not duplicated.
+
 func HandleContestReminderEvent(rdb *redis.Client, platform, contestName, email, startTime, timeRemaining string, minutesBefore int) bool {
 	if services.IsContestReminderSent(rdb, platform, contestName, minutesBefore) {
 		return false
@@ -163,10 +163,11 @@ func saveJobToRedis(rdb *redis.Client, job *model.Job) {
 	log.Printf("Job %s [%s] stored in Redis queue", job.ID, job.Type)
 }
 
-// GetRegisteredUsers reads all monitored users from MongoDB and fallbacks/complements with Redis.
+
 func GetRegisteredUsers(rdb *redis.Client) []struct {
 	Platform string
 	Username string
+	Email    string
 } {
 	registrations, err := repository.GetAllMonitoringRegistrations()
 	if err != nil {
@@ -177,6 +178,7 @@ func GetRegisteredUsers(rdb *redis.Client) []struct {
 	var users []struct {
 		Platform string
 		Username string
+		Email    string
 	}
 	seen := make(map[string]bool)
 
@@ -186,9 +188,11 @@ func GetRegisteredUsers(rdb *redis.Client) []struct {
 			users = append(users, struct {
 				Platform string
 				Username string
+				Email    string
 			}{
 				Platform: reg.Platform,
 				Username: reg.Username,
+				Email:    reg.Email,
 			})
 			seen[key] = true
 		}
@@ -203,12 +207,27 @@ func GetRegisteredUsers(rdb *redis.Client) []struct {
 				username := parts[2]
 				key := platform + ":" + username
 				if !seen[key] {
+					email := ""
+					val, err := rdb.Get(ctx, k).Result()
+					if err == nil {
+						var redisReg struct {
+							Email string `json:"email"`
+						}
+						if err2 := json.Unmarshal([]byte(val), &redisReg); err2 == nil && redisReg.Email != "" {
+							email = redisReg.Email
+						} else {
+							email = val
+						}
+					}
+
 					users = append(users, struct {
 						Platform string
 						Username string
+						Email    string
 					}{
 						Platform: platform,
 						Username: username,
+						Email:    email,
 					})
 					seen[key] = true
 				}

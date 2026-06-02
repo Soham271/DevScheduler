@@ -8,9 +8,9 @@ import (
 	"log"
 )
 
-// handleDelayedEmail processes a one-time delayed email job.
-// It parses the payload, sends the email via SMTP, and logs the result.
-// After execution, the scheduler has already removed the job from Redis — no repetition.
+
+
+
 func handleDelayedEmail(job model.Job) {
 	var payload DelayedEmailPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
@@ -20,7 +20,7 @@ func handleDelayedEmail(job model.Job) {
 
 	log.Printf("📨 [Delayed Email] Sending to %s — Subject: %q", payload.To, payload.Subject)
 
-	// Build a formatted email body
+	
 	body := services.BuildDelayedEmailBody(payload.Subject, payload.Body)
 
 	err := services.SendEmail(payload.To, payload.Subject, body)
@@ -31,7 +31,7 @@ func handleDelayedEmail(job model.Job) {
 
 	log.Printf("✅ [Delayed Email] Successfully sent to %s (job %s)", payload.To, job.ID)
 
-	// Emit activity to the live feed
+	
 	if WorkerRDB != nil {
 		services.EmitEmailActivity(WorkerRDB,
 			"Scheduled Email Sent",
@@ -41,8 +41,8 @@ func handleDelayedEmail(job model.Job) {
 	}
 }
 
-// handleInactivityReminder processes a LeetCode inactivity reminder job.
-// It sends a motivational reminder email with the user's current stats.
+
+
 func handleInactivityReminder(job model.Job) {
 	var payload InactivityReminderPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
@@ -64,7 +64,7 @@ func handleInactivityReminder(job model.Job) {
 
 	log.Printf("✅ [Inactivity Reminder] Reminder #%d sent to %s (job %s)", payload.ReminderNum, payload.Email, job.ID)
 
-	// Emit activity to the live feed
+	
 	if WorkerRDB != nil {
 		services.EmitReminderActivity(WorkerRDB, model.PriorityWarning,
 			fmt.Sprintf("Inactivity Reminder #%d Sent", payload.ReminderNum),
@@ -74,8 +74,8 @@ func handleInactivityReminder(job model.Job) {
 	}
 }
 
-// handleContestReminder processes a contest countdown reminder job.
-// It sends an email with contest details and time remaining.
+
+
 func handleContestReminder(job model.Job) {
 	var payload ContestReminderPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
@@ -98,7 +98,7 @@ func handleContestReminder(job model.Job) {
 	log.Printf("✅ [Contest Reminder] %d-min reminder sent for %s to %s (job %s)",
 		payload.MinutesBefore, payload.ContestName, payload.Email, job.ID)
 
-	// Emit activity to the live feed
+	
 	if WorkerRDB != nil {
 		services.EmitContestActivity(WorkerRDB,
 			fmt.Sprintf("Contest in %d minutes!", payload.MinutesBefore),

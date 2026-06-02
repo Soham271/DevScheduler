@@ -12,10 +12,10 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  GeeksForGeeks Intelligence Service
-//  Comprehensive data fetching for the dedicated GFG page.
-// ═══════════════════════════════════════════════════════════════
+
+
+
+
 
 type GFGFullProfile struct {
 	Username         string               `json:"username"`
@@ -34,17 +34,17 @@ type GFGFullProfile struct {
 	FetchedAt        time.Time            `json:"fetched_at"`
 }
 
-// FetchGFGFullProfile fetches comprehensive GFG data.
+
 func FetchGFGFullProfile(username string) (*GFGFullProfile, error) {
 	profile := &GFGFullProfile{
 		Username:  username,
 		FetchedAt: time.Now(),
 	}
 
-	// Try the GFG API first
+	
 	if err := fetchGFGAPIData(username, profile); err != nil {
 		log.Printf("⚠️ [GFG API] Failed for %s: %v, falling back to scraper", username, err)
-		// Fallback to scraper
+		
 		if err2 := fetchGFGScraperData(username, profile); err2 != nil {
 			return nil, fmt.Errorf("both GFG API and scraper failed: %v / %v", err, err2)
 		}
@@ -56,7 +56,7 @@ func FetchGFGFullProfile(username string) (*GFGFullProfile, error) {
 	return profile, nil
 }
 
-// fetchGFGAPIData tries the GFG practice API for user stats.
+
 func fetchGFGAPIData(username string, profile *GFGFullProfile) error {
 	url := fmt.Sprintf("https://geeks-for-geeks-stats-api.vercel.app/?userName=%s", username)
 	resp, err := http.Get(url)
@@ -89,13 +89,13 @@ func fetchGFGAPIData(username string, profile *GFGFullProfile) error {
 	profile.MediumSolved = result.MediumProblemsSolved
 	profile.HardSolved = result.HardProblemsSolved
 
-	// Also scrape for additional data (coding score, streaks, etc.)
+	
 	fetchGFGScraperData(username, profile)
 
 	return nil
 }
 
-// fetchGFGScraperData scrapes GFG profile page for additional data.
+
 func fetchGFGScraperData(username string, profile *GFGFullProfile) error {
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
@@ -103,7 +103,7 @@ func fetchGFGScraperData(username string, profile *GFGFullProfile) error {
 
 	scoreIndex := 0
 
-	// Coding score and problems solved from score cards
+	
 	c.OnHTML(".score_card_value, .scoreCard_head_left--score__oSi_x", func(e *colly.HTMLElement) {
 		val := strings.TrimSpace(e.Text)
 		var n int
@@ -124,14 +124,14 @@ func fetchGFGScraperData(username string, profile *GFGFullProfile) error {
 		scoreIndex++
 	})
 
-	// Alternative score card
+	
 	c.OnHTML(".solvedProblemContainer_head", func(e *colly.HTMLElement) {
 		if profile.TotalSolved == 0 {
 			fmt.Sscanf(strings.TrimSpace(e.Text), "%d", &profile.TotalSolved)
 		}
 	})
 
-	// Streak data
+	
 	c.OnHTML(".streakCnt", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		var n int
@@ -143,7 +143,7 @@ func fetchGFGScraperData(username string, profile *GFGFullProfile) error {
 		}
 	})
 
-	// Institute
+	
 	c.OnHTML(".educationDetails_head_left--text__tgi9B", func(e *colly.HTMLElement) {
 		if profile.Institute == "" {
 			profile.Institute = strings.TrimSpace(e.Text)

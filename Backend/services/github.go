@@ -11,7 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// GithubEvent represents a minimal structure for GitHub's public event API.
+
 type GithubEvent struct {
 	ID        string          `json:"id"`
 	Type      string          `json:"type"`
@@ -37,8 +37,8 @@ type PullRequestPayload struct {
 	} `json:"pull_request"`
 }
 
-// FetchRecentGithubActivity checks a user's recent public GitHub events.
-// It returns a list of new events that haven't been seen before.
+
+
 func FetchRecentGithubActivity(rdb *redis.Client, username string) ([]GithubEvent, error) {
 	url := fmt.Sprintf("https://api.github.com/users/%s/events/public", username)
 
@@ -47,7 +47,7 @@ func FetchRecentGithubActivity(rdb *redis.Client, username string) ([]GithubEven
 		return nil, err
 	}
 
-	// Add user-agent as required by GitHub API
+	
 	req.Header.Set("User-Agent", "DevFlow-AI-OS")
 
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -71,18 +71,18 @@ func FetchRecentGithubActivity(rdb *redis.Client, username string) ([]GithubEven
 		return nil, err
 	}
 
-	// Filter and find new events
+	
 	var newEvents []GithubEvent
 	lastSeenKey := fmt.Sprintf("github:last_seen:%s", username)
 	lastSeenID, _ := rdb.Get(context.Background(), lastSeenKey).Result()
 
-	// GitHub returns events newest first. We iterate until we hit the last seen event.
+	
 	for _, event := range events {
 		if event.ID == lastSeenID {
 			break
 		}
 
-		// Only care about Push and PullRequest events happening today
+		
 		if event.Type == "PushEvent" || event.Type == "PullRequestEvent" {
 			eventTime, err := time.Parse(time.RFC3339, event.CreatedAt)
 			if err == nil && time.Since(eventTime) < 24*time.Hour {
@@ -91,7 +91,7 @@ func FetchRecentGithubActivity(rdb *redis.Client, username string) ([]GithubEven
 		}
 	}
 
-	// Update the last seen ID to the newest event (if any exist)
+	
 	if len(events) > 0 {
 		rdb.Set(context.Background(), lastSeenKey, events[0].ID, 7*24*time.Hour)
 	}

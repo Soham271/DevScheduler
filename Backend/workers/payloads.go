@@ -1,6 +1,6 @@
 package workers
 
-// --- Legacy payloads (kept for backward compatibility) ---
+
 
 type LeetCodeDailyPayload struct {
 	Username string `json:"username"`
@@ -18,16 +18,16 @@ type EmailPayload struct {
 	Body      string `json:"body"`
 }
 
-// --- New notification payloads ---
 
-// DelayedEmailPayload is used for one-time scheduled email jobs.
+
+
 type DelayedEmailPayload struct {
 	To      string `json:"to"`
 	Subject string `json:"subject"`
 	Body    string `json:"body"`
 }
 
-// InactivityReminderPayload is used for LeetCode inactivity reminder jobs.
+
 type InactivityReminderPayload struct {
 	Username    string `json:"username"`
 	Platform    string `json:"platform"`
@@ -36,7 +36,7 @@ type InactivityReminderPayload struct {
 	TotalSolved int    `json:"total_solved"`
 }
 
-// ContestReminderPayload is used for countdown-style contest reminder jobs.
+
 type ContestReminderPayload struct {
 	ContestName   string `json:"contest_name"`
 	Platform      string `json:"platform"`

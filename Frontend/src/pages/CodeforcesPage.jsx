@@ -9,9 +9,9 @@ import {
   AlertTriangle, ChevronRight, ChevronDown, ChevronUp, Search, Tag
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
-//  Stats Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)]', icon: Icon }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
     className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-5 hover:shadow-[var(--shadow-subtle)] transition-shadow group">
@@ -24,9 +24,9 @@ const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Rank Color Helper
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const getRankColor = (rank) => {
   if (!rank) return 'text-[var(--color-cool-gray)]';
   const r = rank.toLowerCase();
@@ -41,9 +41,9 @@ const getRankColor = (rank) => {
   return 'text-[var(--color-cool-gray)]';
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Submission Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const SubmissionCard = ({ submission }) => {
   const isAccepted = submission.verdict === 'OK';
   const verdictLabel = isAccepted ? 'Accepted' : submission.verdict?.replace(/_/g, ' ') || 'Unknown';
@@ -78,9 +78,9 @@ const SubmissionCard = ({ submission }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Contest Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const ContestCard = ({ contest }) => {
   const change = contest.rating_change;
   const isPositive = change >= 0;
@@ -233,7 +233,7 @@ const CodeforcesPage = () => {
               </div>
             </div>
 
-            {/* Stats Grid */}
+            {}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <StatCard icon={BarChart3} label="Rating" value={profile.rating || 'Unrated'} subtitle={`Max: ${profile.max_rating || '-'}`} color="text-blue-600" />
               <StatCard icon={Trophy} label="Total Solved" value={profile.total_solved} subtitle="Unique problems" />
@@ -248,7 +248,7 @@ const CodeforcesPage = () => {
               <StatCard icon={Flame} label="Today" value={profile.is_active_today ? 'Active ✅' : 'Inactive'} subtitle={profile.is_active_today ? 'Keep it up!' : 'Solve a problem!'} color={profile.is_active_today ? 'text-emerald-600' : 'text-amber-500'} />
             </div>
 
-            {/* Tag Stats */}
+            {}
             {topTags.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <h3 className="text-base font-bold text-[var(--color-charcoal)] mb-4 flex items-center gap-2">
@@ -265,7 +265,7 @@ const CodeforcesPage = () => {
               </div>
             )}
 
-            {/* Recent Submissions */}
+            {}
             {profile.recent_submissions?.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between">
@@ -286,7 +286,7 @@ const CodeforcesPage = () => {
               </div>
             )}
 
-            {/* Contest History */}
+            {}
             {profile.contest_history?.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between">

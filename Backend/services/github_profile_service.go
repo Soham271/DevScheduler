@@ -14,10 +14,10 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  GitHub Intelligence Service
-//  Comprehensive data fetching for the dedicated GitHub page.
-// ═══════════════════════════════════════════════════════════════
+
+
+
+
 
 type GitHubFullProfile struct {
 	Username         string              `json:"username"`
@@ -47,7 +47,7 @@ type GitHubFullProfile struct {
 type ContributionDay struct {
 	Date  string `json:"date"`
 	Count int    `json:"count"`
-	Level int    `json:"level"` // 0-4 intensity
+	Level int    `json:"level"` 
 }
 
 type LanguageStat struct {
@@ -66,25 +66,25 @@ type RepoInfo struct {
 	IsForked    bool   `json:"is_forked"`
 }
 
-// FetchGitHubFullProfile fetches comprehensive GitHub data.
+
 func FetchGitHubFullProfile(username string) (*GitHubFullProfile, error) {
 	profile := &GitHubFullProfile{
 		Username:  username,
 		FetchedAt: time.Now(),
 	}
 
-	// 1. Fetch user profile from GitHub API
+	
 	if err := fetchGitHubUserAPI(username, profile); err != nil {
 		return nil, fmt.Errorf("failed to fetch GitHub user: %w", err)
 	}
 
-	// 2. Fetch recent repos
+	
 	fetchGitHubRepos(username, profile)
 
-	// 3. Fetch PR statistics
+	
 	fetchGitHubPRStats(username, profile)
 
-	// 4. Fetch contribution graph
+	
 	fetchGitHubContributions(username, profile)
 
 	log.Printf("📊 [GitHub] %s: repos=%d, followers=%d, contributions=%d, PRs=%d",
@@ -93,7 +93,7 @@ func FetchGitHubFullProfile(username string) (*GitHubFullProfile, error) {
 	return profile, nil
 }
 
-// fetchGitHubUserAPI fetches basic user data from the GitHub REST API.
+
 func fetchGitHubUserAPI(username string, profile *GitHubFullProfile) error {
 	url := fmt.Sprintf("https://api.github.com/users/%s", username)
 
@@ -150,7 +150,7 @@ func fetchGitHubUserAPI(username string, profile *GitHubFullProfile) error {
 	return nil
 }
 
-// fetchGitHubRepos fetches the most recently updated repos.
+
 func fetchGitHubRepos(username string, profile *GitHubFullProfile) {
 	url := fmt.Sprintf("https://api.github.com/users/%s/repos?sort=updated&per_page=100", username)
 
@@ -187,7 +187,7 @@ func fetchGitHubRepos(username string, profile *GitHubFullProfile) {
 		return
 	}
 
-	// Build language stats map
+	
 	langMap := make(map[string]int)
 
 	for i, r := range repos {
@@ -222,7 +222,7 @@ func fetchGitHubPRStats(username string, profile *GitHubFullProfile) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	fetchCount := func(query string) int {
-		url := fmt.Sprintf("https://api.github.com/search/issues?q=%s&per_page=1", query)
+		url := fmt.Sprintf("https://api.github.com/search/issues?q=%s", query)
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("User-Agent", "DevFlow-AI-OS")
 		req.Header.Set("Accept", "application/vnd.github.v3+json")
@@ -245,13 +245,13 @@ func fetchGitHubPRStats(username string, profile *GitHubFullProfile) {
 		return result.TotalCount
 	}
 
-	// Open PRs
+	
 	profile.OpenPRs = fetchCount(fmt.Sprintf("author:%s+type:pr+state:open", username))
-	// Closed PRs (includes merged)
+	
 	totalClosed := fetchCount(fmt.Sprintf("author:%s+type:pr+state:closed", username))
-	// Merged PRs
+	
 	profile.MergedPRs = fetchCount(fmt.Sprintf("author:%s+type:pr+is:merged", username))
-	// Closed = total closed - merged
+	
 	profile.ClosedPRs = totalClosed - profile.MergedPRs
 	if profile.ClosedPRs < 0 {
 		profile.ClosedPRs = 0
@@ -259,13 +259,13 @@ func fetchGitHubPRStats(username string, profile *GitHubFullProfile) {
 	profile.TotalPRs = profile.OpenPRs + totalClosed
 }
 
-// fetchGitHubContributions scrapes the GitHub profile page for contribution graph data.
+
 func fetchGitHubContributions(username string, profile *GitHubFullProfile) {
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
 	)
 
-	// Parse the total contributions text
+	
 	c.OnHTML("h2.f4.text-normal.mb-2", func(e *colly.HTMLElement) {
 		text := strings.TrimSpace(e.Text)
 		re := regexp.MustCompile(`([\d,]+)\s+contributions?\s+in\s+the\s+last\s+year`)
@@ -310,7 +310,7 @@ func fetchGitHubContributions(username string, profile *GitHubFullProfile) {
 			}
 		}
 
-		// If no count from label, estimate from level
+		
 		if count == 0 && level > 0 {
 			levelCounts := []int{0, 1, 3, 6, 10}
 			if level < len(levelCounts) {
@@ -330,13 +330,13 @@ func fetchGitHubContributions(username string, profile *GitHubFullProfile) {
 		log.Printf("⚠️ [GitHub Contributions] Scrape failed: %v", err)
 	}
 
-	// If scraping didn't get the total, try the contributions page
+	
 	if profile.TotalContributions == 0 {
 		fetchGitHubContributionsAPI(username, profile)
 	}
 }
 
-// fetchGitHubContributionsAPI tries a public contributions API as fallback.
+
 func fetchGitHubContributionsAPI(username string, profile *GitHubFullProfile) {
 	url := fmt.Sprintf("https://github-contributions-api.jogruber.de/v4/%s?y=last", username)
 	req, _ := http.NewRequest("GET", url, nil)
@@ -368,12 +368,12 @@ func fetchGitHubContributionsAPI(username string, profile *GitHubFullProfile) {
 		return
 	}
 
-	// Set total from the "lastYear" key if available
+	
 	if total, ok := result.Total["lastYear"]; ok && profile.TotalContributions == 0 {
 		profile.TotalContributions = total
 	}
 
-	// Only update graph if we didn't get it from scraping
+	
 	if len(profile.ContributionGraph) == 0 && len(result.Contributions) > 0 {
 		for _, c := range result.Contributions {
 			profile.ContributionGraph = append(profile.ContributionGraph, ContributionDay{

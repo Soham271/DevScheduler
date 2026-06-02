@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  Activity Model — Represents a single event in the live feed.
-//  Stored in Redis as a JSON-encoded list item.
-// ═══════════════════════════════════════════════════════════════
 
-// Activity types
+
+
+
+
+
 const (
 	ActivityTypeContest      = "contest"
 	ActivityTypeReminder     = "reminder"
@@ -22,7 +22,7 @@ const (
 	ActivityTypeGithub       = "github"
 )
 
-// Activity priority levels
+
 const (
 	PriorityInfo     = "info"
 	PrioritySuccess  = "success"
@@ -30,20 +30,20 @@ const (
 	PriorityCritical = "critical"
 )
 
-// Activity represents a single event in the live activity feed.
+
 type Activity struct {
 	ID        string            `json:"id"`
-	UserID    string            `json:"user_id"`  // email, username, or "system"
-	Type      string            `json:"type"`     // contest, reminder, productivity, email, ai, system
-	Priority  string            `json:"priority"` // info, success, warning, critical
+	UserID    string            `json:"user_id"`  
+	Type      string            `json:"type"`     
+	Priority  string            `json:"priority"` 
 	Title     string            `json:"title"`
 	Message   string            `json:"message"`
-	Metadata  map[string]string `json:"metadata"` // flexible key-value pairs for extra context
+	Metadata  map[string]string `json:"metadata"` 
 	Read      bool              `json:"read"`
-	CreatedAt int64             `json:"created_at"` // unix timestamp
+	CreatedAt int64             `json:"created_at"` 
 }
 
-// NewActivity creates a new Activity with a generated UUID and current timestamp.
+
 func NewActivity(userID, actType, priority, title, message string, metadata map[string]string) *Activity {
 	if metadata == nil {
 		metadata = make(map[string]string)

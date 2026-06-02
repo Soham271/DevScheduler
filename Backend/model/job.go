@@ -24,8 +24,8 @@ func NewJob(jobType string, delay time.Duration, payload string) *Job {
 	}
 }
 
-// NewJobAt creates a job that executes at an exact timestamp.
-// Used for scheduling emails at a specific datetime (send_at).
+
+
 func NewJobAt(jobType string, executeAt time.Time, payload string) *Job {
 	return &Job{
 		ID:        uuid.New().String(),

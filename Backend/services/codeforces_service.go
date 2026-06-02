@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  Codeforces Intelligence Service
-//  Comprehensive data fetching for the dedicated Codeforces page.
-// ═══════════════════════════════════════════════════════════════
+
+
+
+
 
 type CodeforcesFullProfile struct {
 	Username       string                    `json:"username"`
@@ -57,28 +57,28 @@ type CFContest struct {
 	Timestamp   int64   `json:"timestamp"`
 }
 
-// FetchCodeforcesFullProfile fetches comprehensive Codeforces data.
+
 func FetchCodeforcesFullProfile(username string) (*CodeforcesFullProfile, error) {
 	profile := &CodeforcesFullProfile{
 		Username:  username,
 		FetchedAt: time.Now(),
 	}
 
-	// Step 1: Fetch user info (rating, rank, etc.)
+	
 	if err := fetchCFUserInfo(username, profile); err != nil {
 		return nil, fmt.Errorf("failed to fetch user info: %w", err)
 	}
 
-	// Step 2: Fetch all submissions (for heatmap, recent, tag stats, solved count)
+	
 	fetchCFAllSubmissions(username, profile)
 
-	// Step 3: Calculate streaks from calendar
+	
 	calculateCFStreaks(profile)
 
-	// Step 4: Fetch contest/rating history
+	
 	fetchCFRatingHistory(username, profile)
 
-	// Step 5: Check if active today
+	
 	now := time.Now().In(leetcodeIST)
 	todayStr := now.Format("2006-01-02")
 	if count, ok := profile.SubmissionCalendar[todayStr]; ok && count > 0 {
@@ -88,7 +88,7 @@ func FetchCodeforcesFullProfile(username string) (*CodeforcesFullProfile, error)
 	return profile, nil
 }
 
-// fetchCFUserInfo fetches basic user info from Codeforces API.
+
 func fetchCFUserInfo(username string, profile *CodeforcesFullProfile) error {
 	resp, err := http.Get(fmt.Sprintf("https://codeforces.com/api/user.info?handles=%s", username))
 	if err != nil {
@@ -133,7 +133,7 @@ func fetchCFUserInfo(username string, profile *CodeforcesFullProfile) error {
 	return nil
 }
 
-// fetchCFAllSubmissions fetches ALL submissions for heatmap, recent list, tag stats, etc.
+
 func fetchCFAllSubmissions(username string, profile *CodeforcesFullProfile) {
 	resp, err := http.Get(fmt.Sprintf("https://codeforces.com/api/user.status?handle=%s", username))
 	if err != nil {
@@ -169,30 +169,30 @@ func fetchCFAllSubmissions(username string, profile *CodeforcesFullProfile) {
 	tagStats := make(map[string]int)
 	calendar := make(map[string]int)
 
-	// Collect recent submissions (last 20)
+	
 	recentCount := 0
 	for _, s := range result.Result {
 		subTime := time.Unix(s.CreationTimeSeconds, 0).In(leetcodeIST)
 		dateStr := subTime.Format("2006-01-02")
 
-		// Calendar for heatmap
+		
 		if s.Verdict == "OK" {
 			calendar[dateStr]++
 		}
 
-		// Unique solved problems
+		
 		if s.Verdict == "OK" {
 			key := fmt.Sprintf("%d-%s", s.Problem.ContestID, s.Problem.Index)
 			if !solvedMap[key] {
 				solvedMap[key] = true
-				// Tag stats
+				
 				for _, tag := range s.Problem.Tags {
 					tagStats[tag]++
 				}
 			}
 		}
 
-		// Recent submissions (first 20)
+		
 		if recentCount < 20 {
 			problemURL := fmt.Sprintf("https://codeforces.com/contest/%d/problem/%s", s.Problem.ContestID, s.Problem.Index)
 			profile.RecentSubmissions = append(profile.RecentSubmissions, CFSubmission{
@@ -213,7 +213,7 @@ func fetchCFAllSubmissions(username string, profile *CodeforcesFullProfile) {
 	profile.TagStats = tagStats
 	profile.SubmissionCalendar = calendar
 
-	// Count active days
+	
 	activeDays := 0
 	for _, count := range calendar {
 		if count > 0 {
@@ -226,7 +226,7 @@ func fetchCFAllSubmissions(username string, profile *CodeforcesFullProfile) {
 		username, profile.TotalSolved, activeDays, len(profile.RecentSubmissions))
 }
 
-// calculateCFStreaks calculates current and max streaks from submission calendar.
+
 func calculateCFStreaks(profile *CodeforcesFullProfile) {
 	if len(profile.SubmissionCalendar) == 0 {
 		return
@@ -251,7 +251,7 @@ func calculateCFStreaks(profile *CodeforcesFullProfile) {
 		return dates[i].Before(dates[j])
 	})
 
-	// Max streak
+	
 	maxStreak := 1
 	currentStreak := 1
 	for i := 1; i < len(dates); i++ {
@@ -267,7 +267,7 @@ func calculateCFStreaks(profile *CodeforcesFullProfile) {
 	}
 	profile.MaxStreak = maxStreak
 
-	// Current streak (from today backwards)
+	
 	today := time.Now().In(leetcodeIST)
 	todayDate := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, leetcodeIST)
 
@@ -289,7 +289,7 @@ func calculateCFStreaks(profile *CodeforcesFullProfile) {
 	profile.CurrentStreak = streak
 }
 
-// fetchCFRatingHistory fetches contest rating change history.
+
 func fetchCFRatingHistory(username string, profile *CodeforcesFullProfile) {
 	resp, err := http.Get(fmt.Sprintf("https://codeforces.com/api/user.rating?handle=%s", username))
 	if err != nil {

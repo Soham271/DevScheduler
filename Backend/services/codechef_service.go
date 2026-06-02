@@ -12,10 +12,10 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  CodeChef Intelligence Service
-//  Comprehensive data fetching for the dedicated CodeChef page.
-// ═══════════════════════════════════════════════════════════════
+
+
+
+
 
 type CodeChefFullProfile struct {
 	Username       string            `json:"username"`
@@ -40,7 +40,7 @@ type CodeChefContest struct {
 	RatingChange int    `json:"rating_change"`
 }
 
-// FetchCodeChefFullProfile fetches comprehensive CodeChef data via scraping.
+
 func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 	profile := &CodeChefFullProfile{
 		Username:  username,
@@ -53,7 +53,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 
 	var foundRating bool
 
-	// Rating
+	
 	c.OnHTML(".rating-number", func(e *colly.HTMLElement) {
 		if !foundRating {
 			txt := strings.TrimSpace(e.Text)
@@ -62,7 +62,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 		}
 	})
 
-	// Stars (rating star badges)
+	
 	c.OnHTML(".rating-star span", func(e *colly.HTMLElement) {
 		if profile.Stars == "" {
 			profile.Stars = strings.TrimSpace(e.Text)
@@ -73,7 +73,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 	c.OnHTML(".rating-header .small", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		if strings.Contains(txt, "Highest Rating") {
-			// e.g. "Highest Rating 1573" or "Highest Rating (1573)"
+			
 			re := regexp.MustCompile(`Highest Rating\s*\(?(\d+)\)?`)
 			matches := re.FindStringSubmatch(txt)
 			if len(matches) > 1 {
@@ -84,7 +84,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 		}
 	})
 
-	// Total Problems Solved
+	
 	c.OnHTML("h3", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		if strings.Contains(txt, "Total Problems Solved:") {
@@ -92,7 +92,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 		}
 	})
 
-	// Global Rank
+	
 	c.OnHTML(".inline-list li", func(e *colly.HTMLElement) {
 		txt := strings.TrimSpace(e.Text)
 		if strings.Contains(txt, "Global Rank") {
@@ -109,7 +109,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 		}
 	})
 
-	// Extract Contest Graph Data from Script
+	
 	c.OnHTML("script", func(e *colly.HTMLElement) {
 		txt := e.Text
 		if strings.Contains(txt, "var all_rating = ") {
@@ -163,7 +163,7 @@ func FetchCodeChefFullProfile(username string) (*CodeChefFullProfile, error) {
 		profile.MaxRating = maxR
 	}
 
-	// Calculate stars
+	
 	if profile.Rating < 1400 {
 		profile.Stars = "1★"
 	} else if profile.Rating < 1600 {

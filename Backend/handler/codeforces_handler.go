@@ -11,9 +11,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  Codeforces Intelligence Handler
-// ═══════════════════════════════════════════════════════════════
+
+
+
 
 func CodeforcesAnalyze(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {

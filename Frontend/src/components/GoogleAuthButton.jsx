@@ -6,7 +6,7 @@ const GoogleAuthButton = ({ onSuccess, onError, text = "signin_with" }) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Prevent multiple initialize calls
+    
     if (isInitialized || !window.google) return;
 
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -22,11 +22,11 @@ const GoogleAuthButton = ({ onSuccess, onError, text = "signin_with" }) => {
         client_id: clientId,
         callback: async (response) => {
           try {
-            // Get ID token from response.credential
+            
             const idToken = response.credential;
             
-            // Send to backend POST http://localhost:8080/auth/google
-            // with { "id_token": "TOKEN" } (Fixing the 400 Bad Request error)
+            
+            
             const result = await api.post('/auth/google', { id_token: idToken });
             
             if (onSuccess) onSuccess(result);

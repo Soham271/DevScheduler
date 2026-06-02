@@ -1,8 +1,6 @@
 const API_BASE = 'http://localhost:8080';
 
-/**
- * Make a request and parse the JSON response, throwing on errors
- */
+
 const request = async (method, endpoint, data = null, auth = false) => {
   const headers = { 'Content-Type': 'application/json' };
 
@@ -27,6 +25,11 @@ const request = async (method, endpoint, data = null, auth = false) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && auth) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('isNewUser');
+      window.location.href = '/login';
+    }
     throw new Error((result && result.error) || `API request failed (${response.status})`);
   }
 
@@ -34,29 +37,33 @@ const request = async (method, endpoint, data = null, auth = false) => {
 };
 
 export const api = {
-  // ─── Public (no auth) ──────────────────────
+  
   post: (endpoint, data) => request('POST', endpoint, data, false),
   get: (endpoint) => request('GET', endpoint, null, false),
 
-  // ─── Authenticated ─────────────────────────
+  
   postAuth: (endpoint, data) => request('POST', endpoint, data, true),
   getAuth: (endpoint) => request('GET', endpoint, null, true),
   putAuth: (endpoint, data) => request('PUT', endpoint, data, true),
 
-  // ─── Convenience helpers ───────────────────
+  
 
-  /** Verify a LeetCode username by calling analyze (returns profile data or throws) */
+  
   verifyLeetcodeUser: async (username) => {
     return request('POST', `/analyze/leetcode/${encodeURIComponent(username)}`, null, true);
   },
 
-  /** Save user profile (LeetCode + CodeChef usernames) */
+  
   saveProfile: async (data) => {
     return request('POST', '/user/profile', data, true);
   },
 
   analyzeUser: async (platform, username) => {
     return request('POST', `/analyze/${encodeURIComponent(platform)}/${encodeURIComponent(username)}`, null, true);
+  },
+
+  chatWithAI: async (message) => {
+    return request('POST', '/chat', { message }, true);
   },
 
   registerUser: async (platform, username, email) => {
@@ -88,7 +95,7 @@ export const api = {
     return request('GET', '/health', null, false);
   },
 
-  // ─── Activity Feed ────────────────────────
+  
   getActivities: async (offset = 0, limit = 20) => {
     return request('GET', `/activities?offset=${offset}&limit=${limit}`, null, false);
   },
@@ -101,7 +108,7 @@ export const api = {
     return request('POST', '/activities/clear', null, true);
   },
 
-  // ─── LeetCode Intelligence ─────────────────
+  
   leetcodeAnalyze: async (username) => {
     return request('POST', '/platforms/leetcode/analyze', { username }, true);
   },
@@ -122,22 +129,22 @@ export const api = {
     return request('GET', `/platforms/leetcode/contests?username=${encodeURIComponent(username)}`, null, false);
   },
 
-  // ─── Codeforces Intelligence ─────────────────
+  
   codeforcesAnalyze: async (username) => {
     return request('POST', '/platforms/codeforces/analyze', { username }, true);
   },
 
-  // ─── CodeChef Intelligence ─────────────────
+  
   codechefAnalyze: async (username) => {
     return request('POST', '/platforms/codechef/analyze', { username }, true);
   },
 
-  // ─── GeeksForGeeks Intelligence ─────────────────
+  
   gfgAnalyze: async (username) => {
     return request('POST', '/platforms/gfg/analyze', { username }, true);
   },
 
-  // ─── GitHub Intelligence ─────────────────
+  
   githubAnalyze: async (username) => {
     return request('POST', '/platforms/github/analyze', { username }, true);
   },

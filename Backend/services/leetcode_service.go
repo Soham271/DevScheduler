@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  LeetCode Intelligence Service
-//  Comprehensive data fetching for the dedicated LeetCode page.
-// ═══════════════════════════════════════════════════════════════
 
-// LeetCodeFullProfile holds the complete LeetCode analysis data.
+
+
+
+
+
 type LeetCodeFullProfile struct {
 	Username        string                 `json:"username"`
 	TotalSolved     int                    `json:"total_solved"`
@@ -44,7 +44,7 @@ type LeetCodeFullProfile struct {
 	FetchedAt       time.Time              `json:"fetched_at"`
 }
 
-// LeetCodeSubmission represents a single recent submission.
+
 type LeetCodeSubmission struct {
 	Title         string `json:"title"`
 	TitleSlug     string `json:"title_slug"`
@@ -54,7 +54,7 @@ type LeetCodeSubmission struct {
 	TimeAgo       string `json:"time_ago"`
 }
 
-// LeetCodeContest represents a single contest entry.
+
 type LeetCodeContest struct {
 	Title          string  `json:"title"`
 	StartTime      int64   `json:"start_time"`
@@ -65,31 +65,31 @@ type LeetCodeContest struct {
 	FinishTime     int64   `json:"finish_time"`
 }
 
-// FetchLeetCodeFullProfile fetches comprehensive LeetCode data for the intelligence page.
+
 func FetchLeetCodeFullProfile(username string) (*LeetCodeFullProfile, error) {
 	profile := &LeetCodeFullProfile{
 		Username:  username,
 		FetchedAt: time.Now(),
 	}
 
-	// Step 1: Fetch problem stats + acceptance + ranking
+	
 	if err := fetchLCProfileStats(username, profile); err != nil {
 		return nil, fmt.Errorf("failed to fetch profile stats: %w", err)
 	}
 
-	// Step 2: Fetch submission calendar (heatmap data)
+	
 	fetchLCSubmissionCalendar(username, profile)
 
-	// Step 3: Calculate streaks from calendar
+	
 	calculateStreaks(profile)
 
-	// Step 4: Fetch recent submissions
+	
 	fetchLCRecentSubmissions(username, profile)
 
-	// Step 5: Fetch contest history
+	
 	fetchLCContestHistory(username, profile)
 
-	// Step 6: Check if active today
+	
 	now := time.Now().In(leetcodeIST)
 	todayStr := now.Format("2006-01-02")
 	if count, ok := profile.SubmissionCalendar[todayStr]; ok && count > 0 {
@@ -99,7 +99,7 @@ func FetchLeetCodeFullProfile(username string) (*LeetCodeFullProfile, error) {
 	return profile, nil
 }
 
-// fetchLCProfileStats fetches problem counts, acceptance rate, and ranking.
+
 func fetchLCProfileStats(username string, profile *LeetCodeFullProfile) error {
 	query := fmt.Sprintf(`{
 		"query": "query getUserProfile($username: String!) { allQuestionsCount { difficulty count } matchedUser(username: $username) { submitStats: submitStatsGlobal { acSubmissionNum { difficulty count submissions } } profile { ranking } } userContestRanking(username: $username) { attendedContestsCount rating globalRanking topPercentage } }",
@@ -149,7 +149,7 @@ func fetchLCProfileStats(username string, profile *LeetCodeFullProfile) error {
 		return fmt.Errorf("user %s not found on LeetCode", username)
 	}
 
-	// Parse total question counts
+	
 	for _, q := range result.Data.AllQuestionsCount {
 		switch q.Difficulty {
 		case "Easy":
@@ -161,7 +161,7 @@ func fetchLCProfileStats(username string, profile *LeetCodeFullProfile) error {
 		}
 	}
 
-	// Parse solved counts
+	
 	totalSubmissions := 0
 	for _, s := range result.Data.MatchedUser.SubmitStats.AcSubmissionNum {
 		switch s.Difficulty {
@@ -178,14 +178,14 @@ func fetchLCProfileStats(username string, profile *LeetCodeFullProfile) error {
 	}
 	profile.TotalSubmissions = totalSubmissions
 
-	// Acceptance rate
+	
 	if totalSubmissions > 0 {
 		profile.AcceptanceRate = float64(profile.TotalSolved) / float64(totalSubmissions) * 100
 	}
 
 	profile.Ranking = result.Data.MatchedUser.Profile.Ranking
 
-	// Contest data
+	
 	if result.Data.UserContestRanking != nil {
 		profile.ContestRating = int(result.Data.UserContestRanking.Rating)
 		profile.ContestCount = result.Data.UserContestRanking.AttendedContestsCount
@@ -196,7 +196,7 @@ func fetchLCProfileStats(username string, profile *LeetCodeFullProfile) error {
 	return nil
 }
 
-// fetchLCSubmissionCalendar fetches the submission calendar (heatmap data).
+
 func fetchLCSubmissionCalendar(username string, profile *LeetCodeFullProfile) {
 	query := fmt.Sprintf(`{
 		"query": "query userProfileCalendar($username: String!) { matchedUser(username: $username) { userCalendar { submissionCalendar activeYears } } }",
@@ -231,14 +231,14 @@ func fetchLCSubmissionCalendar(username string, profile *LeetCodeFullProfile) {
 		return
 	}
 
-	// Parse the submission calendar JSON string (unix_timestamp -> count)
+	
 	rawCal := make(map[string]int)
 	if err := json.Unmarshal([]byte(result.Data.MatchedUser.UserCalendar.SubmissionCalendar), &rawCal); err != nil {
 		log.Printf("⚠️ [LC Calendar] Calendar parse failed for %s: %v", username, err)
 		return
 	}
 
-	// Convert unix timestamps to date strings
+	
 	profile.SubmissionCalendar = make(map[string]int)
 	activeDays := 0
 	for tsStr, count := range rawCal {
@@ -257,13 +257,13 @@ func fetchLCSubmissionCalendar(username string, profile *LeetCodeFullProfile) {
 	log.Printf("📊 [LC Calendar] %s has %d active days in calendar", username, activeDays)
 }
 
-// calculateStreaks calculates current and max streaks from the submission calendar.
+
 func calculateStreaks(profile *LeetCodeFullProfile) {
 	if len(profile.SubmissionCalendar) == 0 {
 		return
 	}
 
-	// Collect all dates with submissions
+	
 	var dates []time.Time
 	for dateStr, count := range profile.SubmissionCalendar {
 		if count > 0 {
@@ -279,12 +279,12 @@ func calculateStreaks(profile *LeetCodeFullProfile) {
 		return
 	}
 
-	// Sort dates
+	
 	sort.Slice(dates, func(i, j int) bool {
 		return dates[i].Before(dates[j])
 	})
 
-	// Calculate max streak
+	
 	maxStreak := 1
 	currentStreak := 1
 	for i := 1; i < len(dates); i++ {
@@ -300,7 +300,7 @@ func calculateStreaks(profile *LeetCodeFullProfile) {
 	}
 	profile.MaxStreak = maxStreak
 
-	// Calculate current streak (from today backwards)
+	
 	today := time.Now().In(leetcodeIST)
 	todayDate := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, leetcodeIST)
 
@@ -312,7 +312,7 @@ func calculateStreaks(profile *LeetCodeFullProfile) {
 			streak++
 			checkDate = checkDate.AddDate(0, 0, -1)
 		} else {
-			// If today has no submissions, check from yesterday
+			
 			if streak == 0 && checkDate.Equal(todayDate) {
 				checkDate = checkDate.AddDate(0, 0, -1)
 				continue
@@ -323,7 +323,7 @@ func calculateStreaks(profile *LeetCodeFullProfile) {
 	profile.CurrentStreak = streak
 }
 
-// fetchLCRecentSubmissions fetches the user's recent submissions.
+
 func fetchLCRecentSubmissions(username string, profile *LeetCodeFullProfile) {
 	query := fmt.Sprintf(`{
 		"query": "query recentSubmissions($username: String!, $limit: Int!) { recentSubmissionList(username: $username, limit: $limit) { title titleSlug statusDisplay lang timestamp } }",
@@ -375,7 +375,7 @@ func fetchLCRecentSubmissions(username string, profile *LeetCodeFullProfile) {
 	log.Printf("📊 [LC Submissions] Fetched %d recent submissions for %s", len(profile.RecentSubmissions), username)
 }
 
-// fetchLCContestHistory fetches the user's contest history.
+
 func fetchLCContestHistory(username string, profile *LeetCodeFullProfile) {
 	query := fmt.Sprintf(`{
 		"query": "query userContestRankingInfo($username: String!) { userContestRankingHistory(username: $username) { contest { title startTime } rating ranking problemsSolved totalProblems finishTimeInSeconds } }",
@@ -414,7 +414,7 @@ func fetchLCContestHistory(username string, profile *LeetCodeFullProfile) {
 
 	for _, c := range result.Data.UserContestRankingHistory {
 		if c.Rating == 0 && c.Ranking == 0 {
-			continue // skip non-attended entries
+			continue 
 		}
 		profile.ContestHistory = append(profile.ContestHistory, LeetCodeContest{
 			Title:          c.Contest.Title,
@@ -430,7 +430,7 @@ func fetchLCContestHistory(username string, profile *LeetCodeFullProfile) {
 	log.Printf("📊 [LC Contests] Fetched %d contest entries for %s", len(profile.ContestHistory), username)
 }
 
-// timeAgo returns a human-readable "time ago" string.
+
 func timeAgo(t time.Time, now time.Time) string {
 	d := now.Sub(t)
 	switch {

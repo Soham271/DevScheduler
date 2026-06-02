@@ -11,9 +11,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ═══════════════════════════════════════════════════════════════
-//  CodeChef Intelligence Handler
-// ═══════════════════════════════════════════════════════════════
+
+
+
 
 func CodeChefAnalyze(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {

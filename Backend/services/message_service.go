@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-// GenerateMessages produces a list of dynamic, personalized messages
-// based on the user's profile and analysis results. No hardcoded values —
-// every message is assembled from the actual data.
+
+
+
 func GenerateMessages(
 	profile *model.UserProfile,
 	perfLevel, ratingLevel string,
@@ -15,7 +15,7 @@ func GenerateMessages(
 ) []model.DynamicMessage {
 	var messages []model.DynamicMessage
 
-	// --- Warning messages ---
+	
 
 	if inactive {
 		messages = append(messages, model.DynamicMessage{
@@ -28,7 +28,7 @@ func GenerateMessages(
 	}
 
 
-	// --- Suggestion messages based on performance level ---
+	
 
 	switch perfLevel {
 	case "beginner":
@@ -57,7 +57,7 @@ func GenerateMessages(
 		})
 	}
 
-	// --- Suggestion messages based on rating level ---
+	
 
 	switch ratingLevel {
 	case "low":
@@ -86,7 +86,7 @@ func GenerateMessages(
 		})
 	}
 
-	// --- General motivation (always included) ---
+	
 
 	messages = append(messages, model.DynamicMessage{
 		Category: "motivation",

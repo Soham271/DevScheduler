@@ -9,9 +9,9 @@ import {
   AlertTriangle, ChevronRight, ChevronDown, ChevronUp, Search, UserPlus
 } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════════
-//  Contribution Heatmap — GitHub-style activity graph
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const ContributionHeatmap = ({ calendar }) => {
   const [tooltip, setTooltip] = useState(null);
 
@@ -20,7 +20,7 @@ const ContributionHeatmap = ({ calendar }) => {
     const oneYearAgo = new Date(today);
     oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-    // Start from the Sunday of the week one year ago
+    
     const startDate = new Date(oneYearAgo);
     startDate.setDate(startDate.getDate() - startDate.getDay());
 
@@ -77,7 +77,7 @@ const ContributionHeatmap = ({ calendar }) => {
       </div>
 
       <div className="overflow-x-auto pb-2">
-        {/* Month labels */}
+        {}
         <div className="h-4 relative mb-1 ml-8">
           {months.map((m, i) => (
             <div key={i} className="text-[10px] text-[var(--color-cool-gray)] font-medium absolute" style={{ left: `${m.weekIndex * 13}px` }}>
@@ -87,7 +87,7 @@ const ContributionHeatmap = ({ calendar }) => {
         </div>
 
         <div className="flex gap-[2px] relative">
-          {/* Day labels */}
+          {}
           <div className="flex flex-col gap-[2px] mr-1 pt-0">
             {['', 'Mon', '', 'Wed', '', 'Fri', ''].map((d, i) => (
               <div key={i} className="h-[11px] text-[9px] text-[var(--color-cool-gray)] leading-[11px] w-6 text-right pr-1">{d}</div>
@@ -126,7 +126,7 @@ const ContributionHeatmap = ({ calendar }) => {
         </div>
       </div>
 
-      {/* Tooltip */}
+      {}
       {tooltip && (
         <div className="fixed z-50 px-3 py-1.5 rounded-lg bg-gray-900 text-[var(--color-canvas-white)] text-xs shadow-lg pointer-events-none"
           style={{ left: tooltip.x - 40, top: tooltip.y }}>
@@ -137,9 +137,9 @@ const ContributionHeatmap = ({ calendar }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Stats Card Component
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)]', icon: Icon }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -155,9 +155,9 @@ const StatCard = ({ label, value, subtitle, color = 'text-[var(--color-charcoal)
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Inactive State Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const InactiveCard = () => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
@@ -177,9 +177,9 @@ const InactiveCard = () => (
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Submission Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const SubmissionCard = ({ submission }) => {
   const isAccepted = submission.status === 'Accepted';
   return (
@@ -225,9 +225,9 @@ const SubmissionCard = ({ submission }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Contest Card
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const ContestCard = ({ contest }) => (
   <motion.div
     initial={{ opacity: 0, x: -10 }}
@@ -251,9 +251,9 @@ const ContestCard = ({ contest }) => (
   </motion.div>
 );
 
-// ═══════════════════════════════════════════════════════════════
-//  Main LeetCode Intelligence Page
-// ═══════════════════════════════════════════════════════════════
+
+
+
 const LeetCodePage = () => {
   const stored = getLocalProfile();
   const [username, setUsername] = useState(stored?.leetcode_username || '');
@@ -401,7 +401,7 @@ const LeetCodePage = () => {
               <StatCard icon={Calendar} label="Active Days" value={profile.active_days} subtitle="In the past year" />
             </div>
 
-            {/* Streak Section */}
+            {}
             <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
               <h3 className="text-base font-bold text-[var(--color-charcoal)] mb-4 flex items-center gap-2">
                 <Flame size={18} className="text-orange-500" /> Streak Overview
@@ -422,12 +422,12 @@ const LeetCodePage = () => {
               </div>
             </div>
 
-            {/* Contribution Heatmap */}
+            {}
             {profile.is_active_today && profile.submission_calendar && (
               <ContributionHeatmap calendar={profile.submission_calendar} />
             )}
 
-            {/* Recent Submissions */}
+            {}
             {profile.recent_submissions && profile.recent_submissions.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between">
@@ -452,7 +452,7 @@ const LeetCodePage = () => {
               </div>
             )}
 
-            {/* Contest History */}
+            {}
             {profile.contest_history && profile.contest_history.length > 0 && (
               <div className="bg-[var(--color-canvas-white)] rounded-[12px] border border-[var(--color-ash-gray)] shadow-[var(--shadow-subtle-3)] p-6">
                 <div className="flex items-center justify-between">

@@ -11,7 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// IST timezone for scheduling
+
 var monitorIST *time.Location
 
 func init() {
@@ -22,13 +22,13 @@ func init() {
 	}
 }
 
-// StartSimulatedMonitors runs background monitoring goroutines.
-// Instead of hardcoded usernames, it reads registered users from Redis
-// and runs the intelligent analysis pipeline for each one.
+
+
+
 func StartSimulatedMonitors(rdb *redis.Client) {
-	// Monitor 1: Periodic intelligent analysis for all registered users
+	
 	go func() {
-		// Run every 5 minutes (configurable)
+		
 		ticker := time.NewTicker(5 * time.Minute)
 		log.Println("🔍 [Monitor] Started periodic user analysis monitor (every 5 min)")
 
@@ -46,7 +46,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	// Monitor 2: Contest reminders — checks if contests are approaching (legacy)
+	
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		log.Println("🏁 [Monitor] Started contest reminder monitor (every 1 min)")
@@ -59,7 +59,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				continue
 			}
 
-			// CodeChef Starters — Wednesday
+			
 			if now.Weekday() == time.Wednesday {
 				for _, u := range users {
 					if u.Platform == "codechef" {
@@ -68,7 +68,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			// LeetCode Weekly — Sunday
+			
 			if now.Weekday() == time.Sunday {
 				for _, u := range users {
 					if u.Platform == "leetcode" {
@@ -77,7 +77,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			// LeetCode Biweekly — alternate Saturday (even ISO weeks)
+			
 			_, week := now.ISOWeek()
 			if now.Weekday() == time.Saturday && week%2 == 0 {
 				for _, u := range users {
@@ -87,7 +87,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			// Codeforces Div 2 — Saturday
+			
 			if now.Weekday() == time.Saturday {
 				for _, u := range users {
 					if u.Platform == "codeforces" {
@@ -96,7 +96,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			// Codeforces Educational — Thursday
+			
 			if now.Weekday() == time.Thursday {
 				for _, u := range users {
 					if u.Platform == "codeforces" {
@@ -107,11 +107,11 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	// ═════════════════════════════════════════════════════════════
-	//  Monitor: GitHub Activity Tracker
-	// ═════════════════════════════════════════════════════════════
+	
+	
+	
 	go func() {
-		// Run every 10 minutes to respect GitHub API rate limits
+		
 		ticker := time.NewTicker(10 * time.Minute)
 		log.Println("🐙 [Monitor] Started GitHub Dev Pulse monitor (every 10 min)")
 
@@ -192,7 +192,10 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			}
 
 			for _, u := range users {
-				email := services.GetUserEmail(rdb, u.Platform, u.Username)
+				email := u.Email
+				if email == "" {
+					email = services.GetUserEmail(rdb, u.Platform, u.Username)
+				}
 				if email == "" {
 					continue
 				}
@@ -261,19 +264,19 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	// ═════════════════════════════════════════════════════════════
-	//  Monitor 4: Contest Countdown Reminder Monitor
-	//  Checks every minute if any contest is within countdown range
-	// ═════════════════════════════════════════════════════════════
+	
+	
+	
+	
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		log.Println("⏰ [Monitor] Started contest countdown reminder monitor (every 1 min)")
 
-		// Countdown slots in minutes
+		
 		countdownSlots := []int{60, 30, 15, 5, 1}
 
 		for range ticker.C {
-			// Get upcoming contests from both platforms
+			
 			contests := services.GetUpcomingContests("")
 			if len(contests) == 0 {
 				continue
@@ -303,7 +306,10 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 								continue
 							}
 
-							email := services.GetUserEmail(rdb, u.Platform, u.Username)
+							email := u.Email
+							if email == "" {
+								email = services.GetUserEmail(rdb, u.Platform, u.Username)
+							}
 							if email == "" {
 								continue
 							}
@@ -330,18 +336,18 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 	}()
 }
 
-// parseContestTime attempts to parse the contest scheduled time string.
+
 func parseContestTime(scheduledAt string) (time.Time, error) {
-	// The contest service formats as: "Mon, 02 Jan 2006 03:04 PM IST"
+	
 	layout := "Mon, 02 Jan 2006 03:04 PM MST"
 	t, err := time.Parse(layout, scheduledAt)
 	if err != nil {
-		// Try with IST timezone explicitly
+		
 		loc, _ := time.LoadLocation("Asia/Kolkata")
 		if loc == nil {
 			loc = time.FixedZone("IST", 5*3600+30*60)
 		}
-		// Try without timezone
+		
 		layout2 := "Mon, 02 Jan 2006 03:04 PM"
 		t, err = time.ParseInLocation(layout2+" MST", scheduledAt, loc)
 		if err != nil {

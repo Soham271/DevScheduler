@@ -14,6 +14,7 @@ import CodeforcesPage from './pages/CodeforcesPage';
 import CodeChefPage from './pages/CodeChefPage';
 import GFGPage from './pages/GFGPage';
 import GitHubPage from './pages/GitHubPage';
+import ChatWidget from './components/ChatWidget';
 import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
 import './index.css';
@@ -22,16 +23,16 @@ const ProtectedRoute = ({ element, isAuthenticated }) => {
   return isAuthenticated ? element : <Navigate to="/" replace />;
 };
 
-/** Wrapper that conditionally shows the Navbar and main padding */
+
 const AppLayout = ({ isAuthenticated, setIsAuthenticated, setNeedsOnboarding, needsOnboarding, handleOnboardingComplete }) => {
   const location = useLocation();
   const isLanding = location.pathname === '/' && !isAuthenticated;
 
-  // Landing page now inherits the default light theme
+  
 
   return (
     <div className="min-h-screen">
-      {/* Hide navbar on the immersive landing page */}
+      {}
       {!isLanding && (
         <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
       )}
@@ -57,6 +58,7 @@ const AppLayout = ({ isAuthenticated, setIsAuthenticated, setNeedsOnboarding, ne
           <Route path="/profile" element={<ProtectedRoute element={<Profile />} isAuthenticated={isAuthenticated} />} />
           <Route path="/schedule" element={<ProtectedRoute element={<Schedule />} isAuthenticated={isAuthenticated} />} />
           <Route path="/watch" element={<ProtectedRoute element={<Watch />} isAuthenticated={isAuthenticated} />} />
+
           <Route path="/platforms/leetcode" element={<ProtectedRoute element={<LeetCodePage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/platforms/codeforces" element={<ProtectedRoute element={<CodeforcesPage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
@@ -66,6 +68,7 @@ const AppLayout = ({ isAuthenticated, setIsAuthenticated, setNeedsOnboarding, ne
         </Routes>
       </main>
       {isAuthenticated && needsOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      {isAuthenticated && <ChatWidget />}
     </div>
   );
 };

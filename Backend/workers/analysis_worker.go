@@ -11,8 +11,8 @@ import (
 
 const JobTypeUserAnalysis = "user_analysis"
 
-// AnalysisPayload is the rich payload carried by user_analysis jobs.
-// It includes all analysis results so the worker has full context.
+
+
 type AnalysisPayload struct {
 	Username    string                `json:"username"`
 	Platform    string                `json:"platform"`
@@ -26,7 +26,7 @@ type AnalysisPayload struct {
 	IsMockData  bool                  `json:"is_mock_data"`
 }
 
-// handleUserAnalysis processes a rich analysis job and logs the results.
+
 func handleUserAnalysis(job model.Job) {
 	var payload AnalysisPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
@@ -34,7 +34,7 @@ func handleUserAnalysis(job model.Job) {
 		return
 	}
 
-	// Header
+	
 	dataSource := "LIVE"
 	if payload.IsMockData {
 		dataSource = "MOCK"
@@ -43,14 +43,14 @@ func handleUserAnalysis(job model.Job) {
 	fmt.Printf("║  🧠 INTELLIGENT ANALYSIS — %s@%s [%s DATA]           \n", payload.Username, payload.Platform, dataSource)
 	fmt.Printf("╠══════════════════════════════════════════════════════════════╣\n")
 
-	// Profile stats
+	
 	fmt.Printf("║  📊 Problems Solved : %d\n", payload.TotalSolved)
 	fmt.Printf("║  ⭐ Rating          : %d\n", payload.Rating)
 	fmt.Printf("║  🏷️  Performance     : %s\n", strings.ToUpper(payload.PerfLevel))
 	fmt.Printf("║  🎯 Rating Tier     : %s\n", strings.ToUpper(payload.RatingLevel))
 	fmt.Printf("║  💤 Inactive Today  : %v\n", payload.Inactive)
 
-	// Messages
+	
 	if len(payload.Messages) > 0 {
 		fmt.Printf("╠══════════════════════════════════════════════════════════════╣\n")
 		fmt.Printf("║  📬 MESSAGES (%d):\n", len(payload.Messages))
@@ -59,7 +59,7 @@ func handleUserAnalysis(job model.Job) {
 		}
 	}
 
-	// Contests
+	
 	if len(payload.Contests) > 0 {
 		fmt.Printf("╠══════════════════════════════════════════════════════════════╣\n")
 		fmt.Printf("║  🏁 UPCOMING CONTESTS (%d):\n", len(payload.Contests))
@@ -70,7 +70,7 @@ func handleUserAnalysis(job model.Job) {
 
 	fmt.Printf("╚══════════════════════════════════════════════════════════════╝\n\n")
 
-	// Emit activity to the live feed
+	
 	if WorkerRDB != nil {
 		priority := model.PriorityInfo
 		if payload.Inactive {
