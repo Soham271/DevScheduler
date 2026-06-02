@@ -15,7 +15,10 @@ export const openai = new OpenAI({
         : "https://openrouter.ai/api/v1",
 });
 
-export const chromaClient = new ChromaClient({ host: 'localhost', port: 8000 });
+export const chromaClient = new ChromaClient({ 
+    host: process.env.CHROMA_HOST || 'localhost', 
+    port: parseInt(process.env.CHROMA_PORT || '8000') 
+});
 await chromaClient.heartbeat();
 console.log('✅ ChromaDB Connected');
 

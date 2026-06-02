@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"devflow-scheduler/repository"
 	"devflow-scheduler/services"
@@ -68,7 +69,10 @@ func ChatProxy() gin.HandlerFunc {
 		}
 
 		
-		nodeServiceURL := "http://localhost:3001/api/chat"
+		nodeServiceURL := os.Getenv("CHATBOT_SERVICE_URL")
+		if nodeServiceURL == "" {
+			nodeServiceURL = "http://localhost:3001/api/chat"
+		}
 		resp, err := http.Post(nodeServiceURL, "application/json", bytes.NewBuffer(payloadBytes))
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Chatbot service is currently unavailable. Please ensure it is running."})

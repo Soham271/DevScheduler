@@ -26,11 +26,36 @@ services:
     environment:
       - MONGO_URI=mongodb://mongodb:27017/devscheduler
       - REDIS_ADDR=redis:6379
+      - CHATBOT_SERVICE_URL=http://chatbot:3001/api/chat
     env_file:
       - ./Backend/.env
     depends_on:
       - mongodb
       - redis
+      - chatbot
+    restart: always
+
+  chatbot:
+    build:
+      context: ./chat-bot
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    env_file:
+      - ./chat-bot/.env
+    depends_on:
+      - chromadb
+    restart: always
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/data
     restart: always
 
   frontend:
@@ -46,3 +71,4 @@ services:
 volumes:
   mongodb_data:
   redis_data:
+  chromadb_data:
