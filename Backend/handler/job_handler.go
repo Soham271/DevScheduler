@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -243,9 +244,14 @@ func GetContests(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		platform := c.Param("platform")
 
-		if platform != "leetcode" && platform != "codechef" && platform != "codeforces" && platform != "gfg" && platform != "all" {
+		allowed := map[string]bool{
+			"leetcode": true, "codechef": true, "codeforces": true, "gfg": true, "all": true,
+			"devpost": true, "hackerearth": true, "unstop": true, "devfolio": true, "local": true,
+		}
+
+		if !allowed[platform] {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Use 'leetcode', 'codechef', 'codeforces', 'gfg', or 'all'.",
+				"error": "Invalid platform.",
 			})
 			return
 		}
@@ -260,6 +266,60 @@ func GetContests(rdb *redis.Client) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"platform": platform,
 			"contests": contests,
+		})
+	}
+}
+
+// SubmitHackathon allows authenticated users (organizers) to submit a new hackathon
+func SubmitHackathon() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			Name        string `json:"name" binding:"required"`
+			Platform    string `json:"platform" binding:"required"` // unstop, devfolio, local
+			URL         string `json:"url" binding:"required"`
+			ScheduledAt string `json:"scheduled_at" binding:"required"`
+			EndDate     string `json:"end_date" binding:"required"` // ISO string
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+			return
+		}
+
+		email, exists := c.Get("user_email")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
+
+		endDate, err := time.Parse(time.RFC3339, req.EndDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use ISO8601 (RFC3339)."})
+			return
+		}
+
+		hackathon := model.CustomHackathon{
+			Name:        req.Name,
+			Platform:    req.Platform,
+			URL:         req.URL,
+			ScheduledAt: req.ScheduledAt,
+			EndDate:     endDate,
+			SubmittedBy: email.(string),
+			CreatedAt:   time.Now(),
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		result, err := config.CustomHackathonCollection.InsertOne(ctx, hackathon)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save hackathon"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "Hackathon submitted successfully",
+			"id":      result.InsertedID,
 		})
 	}
 }

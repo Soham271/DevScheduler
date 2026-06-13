@@ -14,6 +14,7 @@ import CodeforcesPage from './pages/CodeforcesPage';
 import CodeChefPage from './pages/CodeChefPage';
 import GFGPage from './pages/GFGPage';
 import GitHubPage from './pages/GitHubPage';
+import Hackathons from './pages/Hackathons';
 import ChatWidget from './components/ChatWidget';
 import OnboardingModal from './components/OnboardingModal';
 import { isLoggedIn, hasCompletedOnboarding, saveProfileLocally } from './utils/auth';
@@ -64,6 +65,7 @@ const AppLayout = ({ isAuthenticated, setIsAuthenticated, setNeedsOnboarding, ne
           <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/platforms/gfg" element={<ProtectedRoute element={<GFGPage />} isAuthenticated={isAuthenticated} />} />
           <Route path="/platforms/github" element={<ProtectedRoute element={<GitHubPage />} isAuthenticated={isAuthenticated} />} />
+          <Route path="/hackathons" element={<ProtectedRoute element={<Hackathons />} isAuthenticated={isAuthenticated} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -121,10 +121,11 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
   const menuRef = useRef(null);
 
   const navLinks = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Contests", path: "/contests" },
-    { name: "Schedule-Mail", path: "/schedule" },
-    { name: "Watch", path: "/watch" },
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Contests', path: '/contests' },
+    { name: 'Hackathons', path: '/hackathons' },
+    { name: 'Schedule-Mail', path: '/schedule' },
+    { name: 'Watch', path: '/watch' },
   ];
 
   const isActive = (path) => location.pathname === path;

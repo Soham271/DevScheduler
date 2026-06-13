@@ -53,6 +53,9 @@ func SetupRouter(rdb *redis.Client) *gin.Engine {
 
 		
 		protected.POST("/user/profile", handler.UpdateUserProfile())
+
+		// Hackathon Submission
+		protected.POST("/hackathons/submit", handler.SubmitHackathon())
 	}
 
 	

@@ -91,6 +91,10 @@ export const api = {
     return request('GET', `/contests/${encodeURIComponent(platform)}`, null, false);
   },
 
+  submitHackathon: async (data) => {
+    return request('POST', '/hackathons/submit', data, true);
+  },
+
   checkHealth: async () => {
     return request('GET', '/health', null, false);
   },
