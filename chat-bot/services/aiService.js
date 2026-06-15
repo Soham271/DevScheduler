@@ -1,14 +1,16 @@
-import { collection, openai, isGoogle } from '../config/db.js';
+import { upstashIndex, embedder, openai, isGoogle } from '../config/db.js';
 
 export async function chatwithdata(question, userContext) {
     console.log(`🔍 Searching database for: "${question}"`);
 
-    const collectionresult = await collection.query({
-        nResults: 15,
-        queryTexts: [question],
+    const queryVector = (await embedder.generate([question]))[0];
+    const collectionresult = await upstashIndex.query({
+        topK: 15,
+        vector: queryVector,
+        includeMetadata: true,
     });
 
-    const body = (collectionresult.metadatas?.[0] || []).map(e => e.body).filter(Boolean);
+    const body = collectionresult.map(e => e.metadata?.body).filter(Boolean);
 
     if (body.length === 0 && !userContext) {
         console.log("No matching context found inside ChromaDB and no user context.");

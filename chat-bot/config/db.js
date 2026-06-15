@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { configDotenv } from 'dotenv';
-import { ChromaClient } from 'chromadb';
+import { Index } from '@upstash/vector';
 import { DefaultEmbeddingFunction } from '@chroma-core/default-embed';
 
 configDotenv({ path: '.env' });
@@ -15,20 +15,12 @@ export const openai = new OpenAI({
         : "https://openrouter.ai/api/v1",
 });
 
-export const chromaClient = new ChromaClient({ 
-    host: process.env.CHROMA_HOST || 'localhost', 
-    port: parseInt(process.env.CHROMA_PORT || '8000') 
+export const upstashIndex = new Index({
+    url: process.env.UPSTASH_VECTOR_REST_URL,
+    token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
-await chromaClient.heartbeat();
-console.log('✅ ChromaDB Connected');
+console.log('✅ Upstash Vector Initialized');
 
-const COLLECTION_NAME = 'devscheduler_data';
 export const embedder = new DefaultEmbeddingFunction();
-
-export const collection = await chromaClient.getOrCreateCollection({
-    name: COLLECTION_NAME,
-    embeddingFunction: embedder,
-});
-console.log('✅ Clean Collection Ready');
 
 export { isGoogle };

@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { collection } from '../config/db.js';
+import { upstashIndex, embedder } from '../config/db.js';
 
 const visitedUrls = new Set();
 
@@ -42,11 +42,12 @@ export function chunkTextByTokens(text, maxTokens = 200) {
     return chunks;
 }
 
-export async function storeInChromaDB({ url, body }) {
-    await collection.add({
-        ids: [`${url}-${Date.now()}-${Math.random()}`],
-        documents: [body],
-        metadatas: [{ url, body }],
+export async function storeInUpstash({ url, body }) {
+    const vector = (await embedder.generate([body]))[0];
+    await upstashIndex.upsert({
+        id: `${url}-${Date.now()}-${Math.random()}`,
+        vector: vector,
+        metadata: { url, body },
     });
 }
 
@@ -61,7 +62,7 @@ export async function ingestWebsite(url = '') {
 
         for (const chunk of chunks) {
             if (!chunk.trim()) continue;
-            await storeInChromaDB({ url, body: chunk });
+            await storeInUpstash({ url, body: chunk });
         }
 
         for (const link of internalLinks) {
