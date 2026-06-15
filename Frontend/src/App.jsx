@@ -91,6 +91,7 @@ function App() {
   const handleOnboardingComplete = (profileData) => {
     if (profileData) saveProfileLocally(profileData);
     setNeedsOnboarding(false);
+    window.location.reload();
   };
 
   if (isLoading) {

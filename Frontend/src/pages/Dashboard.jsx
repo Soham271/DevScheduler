@@ -104,7 +104,11 @@ const Dashboard = () => {
       api.getContests("all"),
       api.getRegisteredUsers(),
     ]);
-    if (cr.status === "fulfilled") setContestsCount(cr.value?.contests?.length || 0);
+    if (cr.status === "fulfilled") {
+      const allEvents = cr.value?.contests || [];
+      const codingContests = allEvents.filter(c => c.type !== 'hackathon');
+      setContestsCount(codingContests.length);
+    }
     if (ur.status === "fulfilled") setWatchCount(ur.value?.users?.length || 0);
     setRefreshing(false);
   }, []);

@@ -63,15 +63,17 @@ func GetUserByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
-func UpdateUserProfiles(email, leetcode, codechef, github string) error {
+func UpdateUserProfiles(email, leetcode, codechef, codeforces, gfg, github string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	update := bson.M{
 		"$set": bson.M{
-			"leetcode_username": leetcode,
-			"codechef_username": codechef,
-			"github_username":   github,
+			"leetcode_username":   leetcode,
+			"codechef_username":   codechef,
+			"codeforces_username": codeforces,
+			"gfg_username":        gfg,
+			"github_username":     github,
 		},
 	}
 	_, err := config.UserCollection.UpdateOne(ctx, bson.M{"email": email}, update)

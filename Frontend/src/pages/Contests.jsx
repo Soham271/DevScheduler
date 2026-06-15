@@ -16,7 +16,9 @@ const Contests = () => {
     setError('');
     try {
       const result = await api.getContests('all');
-      setContests(result?.contests || []);
+      const allEvents = result?.contests || [];
+      const codingContests = allEvents.filter(c => c.type !== 'hackathon');
+      setContests(codingContests);
     } catch (err) {
       setError(err.message || 'Failed to load contests.');
     } finally {
