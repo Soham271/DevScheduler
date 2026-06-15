@@ -16,7 +16,7 @@ app.use(express.json());
 app.use('/api/chat', chatRouter);
 app.use('/api/ingest', ingestRouter);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`🚀 Chatbot Express server running on http://localhost:${PORT}`);
+    console.log(`🚀 Chatbot Express server running on port ${PORT}`);
 });
