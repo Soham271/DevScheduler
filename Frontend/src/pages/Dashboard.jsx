@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
   AlertTriangle,
@@ -468,43 +469,61 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {!analysis && !aErr && (
-              /* DESIGN UPDATE: larger 48px icon, dashed border empty state */
-              <div className="mt-5 flex flex-col items-center gap-3 rounded-[20px] border-2 border-dashed border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-8 text-center">
-                <Search size={48} className="text-[var(--color-cool-gray)] opacity-40" />
-                <div>
-                  <strong className="block text-sm text-[var(--color-charcoal)]">
-                    No analysis yet
-                  </strong>
-                  <p className="mt-1 text-xs text-[var(--color-cool-gray)]">
-                    Enter your username and hit Analyze to get insights.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {analysis && analysis.isInactiveToday && analysis.profileHidden && (
-              /* DESIGN UPDATE: inactivity warning with 4px amber left border, breathing room */
-              <div className="mt-5 flex gap-4 rounded-[20px] border border-amber-200 bg-[#FFFBEB] p-5" style={{ borderLeft: '4px solid #F59E0B', padding: '1.25rem' }}>
-                <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-500" />
-                <div>
-                  {/* DESIGN UPDATE: uppercase 10px label */}
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-slate-blue)]">
-                    {pCfg[analysis.platform]?.label || analysis.platform}
-                  </span>
-                  <h3 className="mt-1 text-base font-semibold text-[var(--color-charcoal)]">
-                    {analysis.headline}
-                  </h3>
-                  {analysis.messages.map((m, i) => (
-                    <p key={i} className="mt-2 text-sm leading-6 text-[var(--color-cool-gray)]">
-                      {m.text}
+            <AnimatePresence mode="wait">
+              {!analysis && !aErr && (
+                /* DESIGN UPDATE: larger 48px icon, dashed border empty state */
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }} 
+                  animate={{ opacity: 1, height: "auto" }} 
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-5 flex flex-col items-center gap-3 rounded-[20px] border-2 border-dashed border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-8 text-center overflow-hidden"
+                >
+                  <Search size={48} className="text-[var(--color-cool-gray)] opacity-40" />
+                  <div>
+                    <strong className="block text-sm text-[var(--color-charcoal)]">
+                      No analysis yet
+                    </strong>
+                    <p className="mt-1 text-xs text-[var(--color-cool-gray)]">
+                      Enter your username and hit Analyze to get insights.
                     </p>
-                  ))}                </div>
-              </div>
-            )}
+                  </div>
+                </motion.div>
+              )}
 
-            {analysis && !analysis.profileHidden && (
-              <div className="mt-5 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+              {analysis && analysis.isInactiveToday && analysis.profileHidden && (
+                /* DESIGN UPDATE: inactivity warning with 4px amber left border, breathing room */
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }} 
+                  animate={{ opacity: 1, height: "auto" }} 
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-5 flex gap-4 rounded-[20px] border border-amber-200 bg-[#FFFBEB] overflow-hidden" 
+                  style={{ borderLeft: '4px solid #F59E0B', padding: '1.25rem' }}
+                >
+                  <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-500" />
+                  <div>
+                    {/* DESIGN UPDATE: uppercase 10px label */}
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-slate-blue)]">
+                      {pCfg[analysis.platform]?.label || analysis.platform}
+                    </span>
+                    <h3 className="mt-1 text-base font-semibold text-[var(--color-charcoal)]">
+                      {analysis.headline}
+                    </h3>
+                    {analysis.messages.map((m, i) => (
+                      <p key={i} className="mt-2 text-sm leading-6 text-[var(--color-cool-gray)]">
+                        {m.text}
+                      </p>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {analysis && !analysis.profileHidden && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }} 
+                  animate={{ opacity: 1, height: "auto" }} 
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-5 grid gap-6 lg:grid-cols-[0.92fr_1.08fr] overflow-hidden"
+                >
                 <div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -603,9 +622,10 @@ const Dashboard = () => {
                       )
                     )}
                   </div>
-                </div>
-              </div>
-            )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="flex flex-col gap-6">
