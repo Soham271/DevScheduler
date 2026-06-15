@@ -8,21 +8,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-
 var Ctx = context.Background()
 
 func ConnectRedis() *redis.Client {
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
-		redisAddr = "localhost:6379"
+		redisAddr = "redis://localhost:6379"
 	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
+	opts, err := redis.ParseURL(redisAddr)
+	if err != nil {
 
-	
-	_, err := client.Ping(Ctx).Result()
+		opts = &redis.Options{Addr: redisAddr}
+	}
+
+	client := redis.NewClient(opts)
+
+	_, err = client.Ping(Ctx).Result()
 	if err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
