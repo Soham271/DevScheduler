@@ -55,7 +55,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   position: relative;
   overflow-x: hidden;
-  font-size: 16px;
+  /* DESIGN UPDATE: increased base font from 16px to 15px body text per spec */
+  font-size: 15px;
   line-height: 1.56;
 }
 
@@ -201,6 +202,48 @@ body {
   }
 }
 
+/* DESIGN UPDATE: pulsing green dot for "Live" badge */
+@keyframes livePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.4;
+  }
+}
+
+/* DESIGN UPDATE: page fade-in on route change */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* DESIGN UPDATE: rotating text slide-up for landing hero */
+@keyframes rotateTextIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp .6s cubic-bezier(0.16, 1, 0.3, 1) forwards
 }
@@ -225,6 +268,26 @@ body {
   text-decoration: none
 }
 
+/* DESIGN UPDATE: pulsing green dot utility */
+.live-pulse {
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+
+/* DESIGN UPDATE: page transition utility */
+.page-fade-in {
+  animation: pageFadeIn 200ms ease forwards;
+}
+
+/* DESIGN UPDATE: card hover accent utility */
+.card-hover-accent {
+  transition: all 200ms ease;
+  cursor: pointer;
+}
+.card-hover-accent:hover {
+  background: #FFF9F4;
+  border-left: 2px solid #F59E0B;
+}
+
 .glass-card {
   background: var(--color-canvas-white);
   border: 1px solid var(--color-ash-gray);
@@ -237,6 +300,16 @@ body {
   box-shadow: var(--shadow-subtle);
   transform: translateY(-2px);
   border-color: #d4d4d4;
+}
+
+/* DESIGN UPDATE: warm amber focus ring for all inputs/textareas */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15) !important;
+}
+
+/* DESIGN UPDATE: letter-spacing on primary dark buttons */
+.btn-primary-dark {
+  letter-spacing: 0.02em;
 }
 
 ::-webkit-scrollbar {

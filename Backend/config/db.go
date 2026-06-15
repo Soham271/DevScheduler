@@ -14,6 +14,7 @@ var MongoDB *mongo.Client
 var UserCollection *mongo.Collection
 var MonitoringCollection *mongo.Collection
 var CustomHackathonCollection *mongo.Collection
+var HackathonTrackingCollection *mongo.Collection
 
 func ConnectMongoDB() {
 	mongoURI := os.Getenv("MONGO_URI")
@@ -39,6 +40,7 @@ func ConnectMongoDB() {
 	UserCollection = client.Database("devflow").Collection("users")
 	MonitoringCollection = client.Database("devflow").Collection("monitored_registrations")
 	CustomHackathonCollection = client.Database("devflow").Collection("custom_hackathons")
+	HackathonTrackingCollection = client.Database("devflow").Collection("hackathon_tracking")
 	log.Println("✅ Successfully connected to MongoDB")
 }
 

@@ -38,36 +38,39 @@ const AppLayout = ({ isAuthenticated, setIsAuthenticated, setNeedsOnboarding, ne
         <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
       )}
       <main className={isLanding ? '' : 'px-4 sm:px-6 lg:px-8 py-6 flex justify-center'}>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <LandingPage
-                  setIsAuthenticated={setIsAuthenticated}
-                  setNeedsOnboarding={setNeedsOnboarding}
-                />
-              )
-            }
-          />
-          <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
-          <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/contests" element={<ProtectedRoute element={<Contests />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/profile" element={<ProtectedRoute element={<Profile />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/schedule" element={<ProtectedRoute element={<Schedule />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/watch" element={<ProtectedRoute element={<Watch />} isAuthenticated={isAuthenticated} />} />
+        {/* DESIGN UPDATE: page fade-in transition on route change */}
+        <div key={location.pathname} className="page-fade-in w-full flex justify-center">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <LandingPage
+                    setIsAuthenticated={setIsAuthenticated}
+                    setNeedsOnboarding={setNeedsOnboarding}
+                  />
+                )
+              }
+            />
+            <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login setIsAuthenticated={setIsAuthenticated} setNeedsOnboarding={setNeedsOnboarding} />} />
+            <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/contests" element={<ProtectedRoute element={<Contests />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<Profile />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/schedule" element={<ProtectedRoute element={<Schedule />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/watch" element={<ProtectedRoute element={<Watch />} isAuthenticated={isAuthenticated} />} />
 
-          <Route path="/platforms/leetcode" element={<ProtectedRoute element={<LeetCodePage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/platforms/codeforces" element={<ProtectedRoute element={<CodeforcesPage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/platforms/gfg" element={<ProtectedRoute element={<GFGPage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/platforms/github" element={<ProtectedRoute element={<GitHubPage />} isAuthenticated={isAuthenticated} />} />
-          <Route path="/hackathons" element={<ProtectedRoute element={<Hackathons />} isAuthenticated={isAuthenticated} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="/platforms/leetcode" element={<ProtectedRoute element={<LeetCodePage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/codeforces" element={<ProtectedRoute element={<CodeforcesPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/codechef" element={<ProtectedRoute element={<CodeChefPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/gfg" element={<ProtectedRoute element={<GFGPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/platforms/github" element={<ProtectedRoute element={<GitHubPage />} isAuthenticated={isAuthenticated} />} />
+            <Route path="/hackathons" element={<ProtectedRoute element={<Hackathons />} isAuthenticated={isAuthenticated} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
       </main>
       {isAuthenticated && needsOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
       {isAuthenticated && <ChatWidget />}

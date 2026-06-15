@@ -165,19 +165,18 @@ const Dashboard = () => {
   const Status = ({ s }) =>
     s ? (
       <div
-        className={`mt-4 rounded-[18px] px-4 py-3 text-sm ${
-          s.t === "ok"
-            ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-            : "border border-red-200 bg-red-50 text-red-600"
-        }`}
+        className={`mt-4 rounded-[18px] px-4 py-3 text-sm ${s.t === "ok"
+          ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border border-red-200 bg-red-50 text-red-600"
+          }`}
       >
         {s.m}
       </div>
     ) : null;
 
   return (
-  <div className="mx-auto w-full max-w-[1440px] animate-fade-in-up px-6 py-6">
-   <div className="grid gap-6">
+    <div className="mx-auto w-full max-w-[1440px] animate-fade-in-up px-6 py-6">
+      <div className="grid gap-6">
         <section className={`${shellCard} p-5 sm:p-6`}>
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
             <div>
@@ -191,9 +190,10 @@ const Dashboard = () => {
                       <Sparkles size={12} />
                       DevScheduler
                     </span>
+                    {/* DESIGN UPDATE: subtle text-shadow on welcome heading */}
                     <h1
                       className="mt-1 text-[clamp(2rem,4vw,3.25rem)] leading-[1.02] text-[var(--color-charcoal)]"
-                      style={{ fontFamily: "var(--font-display)" }}
+                      style={{ fontFamily: "var(--font-display)", textShadow: "0 1px 2px rgba(0,0,0,0.06)" }}
                     >
                       Welcome back{email ? `, ${email.split("@")[0]}` : ""}
                     </h1>
@@ -284,7 +284,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-<section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatsCard
             icon={Code2}
             label="Problems Solved"
@@ -355,11 +355,11 @@ const Dashboard = () => {
                         setAErr("");
                         setMStatus(null);
                       }}
-                      className={`inline-flex items-center justify-center gap-2 rounded-[16px] border px-4 py-2.5 text-xs font-semibold transition ${
-                        active
-                          ? "border-[var(--color-charcoal)] bg-[var(--color-charcoal)] text-[var(--color-canvas-white)]"
-                          : "border-[var(--color-ash-gray)] bg-[rgba(255,255,255,0.6)] text-[var(--color-slate-blue)] hover:text-[var(--color-charcoal)]"
-                      }`}
+
+                      className={`inline-flex items-center justify-center gap-2 rounded-[16px] border px-4 py-2.5 text-xs font-semibold transition-all duration-150 ${active
+                        ? "border-[var(--color-charcoal)] bg-[var(--color-charcoal)] text-[var(--color-canvas-white)]"
+                        : "border-[var(--color-ash-gray)] bg-[rgba(255,255,255,0.6)] text-[var(--color-slate-blue)] hover:text-[var(--color-charcoal)] hover:border-[var(--color-charcoal)]"
+                        }`}
                     >
                       <I size={14} />
                       {c.label}
@@ -436,7 +436,7 @@ const Dashboard = () => {
                 )}
                 <Status s={mStatus} />
               </div>
-<div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-4 h-fit">
+              <div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-4 h-fit">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
@@ -469,8 +469,9 @@ const Dashboard = () => {
             </div>
 
             {!analysis && !aErr && (
-              <div className="mt-5 flex items-center gap-4 rounded-[20px] border border-dashed border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-5">
-                <Search size={20} className="shrink-0 text-[var(--color-field-green)]" />
+              /* DESIGN UPDATE: larger 48px icon, dashed border empty state */
+              <div className="mt-5 flex flex-col items-center gap-3 rounded-[20px] border-2 border-dashed border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-8 text-center">
+                <Search size={48} className="text-[var(--color-cool-gray)] opacity-40" />
                 <div>
                   <strong className="block text-sm text-[var(--color-charcoal)]">
                     No analysis yet
@@ -483,10 +484,12 @@ const Dashboard = () => {
             )}
 
             {analysis && analysis.isInactiveToday && analysis.profileHidden && (
-              <div className="mt-5 flex gap-4 rounded-[20px] border border-amber-200 bg-amber-50 p-5">
+              /* DESIGN UPDATE: inactivity warning with 4px amber left border, breathing room */
+              <div className="mt-5 flex gap-4 rounded-[20px] border border-amber-200 bg-[#FFFBEB] p-5" style={{ borderLeft: '4px solid #F59E0B', padding: '1.25rem' }}>
                 <AlertTriangle size={20} className="mt-0.5 shrink-0 text-amber-500" />
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+                  {/* DESIGN UPDATE: uppercase 10px label */}
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-slate-blue)]">
                     {pCfg[analysis.platform]?.label || analysis.platform}
                   </span>
                   <h3 className="mt-1 text-base font-semibold text-[var(--color-charcoal)]">
@@ -496,8 +499,7 @@ const Dashboard = () => {
                     <p key={i} className="mt-2 text-sm leading-6 text-[var(--color-cool-gray)]">
                       {m.text}
                     </p>
-                  ))}
-                </div>
+                  ))}                </div>
               </div>
             )}
 
@@ -523,11 +525,10 @@ const Dashboard = () => {
                         </span>
                       )}
                       <span
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                          analysis.isInactiveToday
-                            ? "border border-amber-300 bg-amber-50 text-amber-700"
-                            : "border border-emerald-300 bg-emerald-50 text-emerald-700"
-                        }`}
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${analysis.isInactiveToday
+                          ? "border border-amber-300 bg-amber-50 text-amber-700"
+                          : "border border-emerald-300 bg-emerald-50 text-emerald-700"
+                          }`}
                       >
                         {analysis.isInactiveToday ? "Inactive" : "Active"}
                       </span>
@@ -573,7 +574,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
-              <div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-4 h-fit">
+                <div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-4 h-fit">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
@@ -607,10 +608,10 @@ const Dashboard = () => {
             )}
           </div>
 
-        <div className="flex flex-col gap-6">
-          <div>
-            <ActivityFeed />
-          </div>
+          <div className="flex flex-col gap-6">
+            <div>
+              <ActivityFeed />
+            </div>
 
             <section className="grid gap-6">
               <Link

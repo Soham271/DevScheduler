@@ -180,24 +180,26 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
         <div className="hidden flex-1 justify-center md:flex">
           {isAuthenticated && (
             <div className="flex items-center gap-1 rounded-full border border-[rgba(27,25,23,0.08)] bg-[rgba(255,255,255,0.72)] p-1 shadow-[var(--shadow-subtle-3)]">
+              {/* DESIGN UPDATE: active nav item with underline + subtle bg */}
               <Link
                 to="/dashboard"
-                className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition ${
+                className={`rounded-[6px] px-4 py-2 text-sm font-medium no-underline transition-all duration-150 ${
                   isActive("/dashboard")
-                    ? "bg-[var(--color-canvas-white)] text-[var(--color-charcoal)] shadow-[var(--shadow-subtle-3)]"
+                    ? "bg-[rgba(0,0,0,0.04)] text-[var(--color-charcoal)] border-b-2 border-[#1a1a1a]"
                     : "text-[var(--color-cool-gray)] hover:text-[var(--color-charcoal)]"
                 }`}
               >
                 Dashboard
               </Link>
               <PlatformsDropdown isActive={isActive} />
+              {/* DESIGN UPDATE: active nav items with underline + subtle bg */}
               {navLinks.slice(1).map((link) => (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition ${
+                  className={`rounded-[6px] px-4 py-2 text-sm font-medium no-underline transition-all duration-150 ${
                     isActive(link.path)
-                      ? "bg-[var(--color-canvas-white)] text-[var(--color-charcoal)] shadow-[var(--shadow-subtle-3)]"
+                      ? "bg-[rgba(0,0,0,0.04)] text-[var(--color-charcoal)] border-b-2 border-[#1a1a1a]"
                       : "text-[var(--color-cool-gray)] hover:text-[var(--color-charcoal)]"
                   }`}
                 >

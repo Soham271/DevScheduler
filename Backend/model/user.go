@@ -69,3 +69,13 @@ type CustomHackathon struct {
 	SubmittedBy string    `json:"submitted_by" bson:"submitted_by"`
 	CreatedAt   time.Time `json:"created_at" bson:"created_at"`
 }
+
+type HackathonTracking struct {
+	ID            string    `json:"id" bson:"_id,omitempty"`
+	Email         string    `json:"email" bson:"email"`
+	HackathonName string    `json:"hackathon_name" bson:"hackathon_name"`
+	Platform      string    `json:"platform" bson:"platform"`
+	Status        string    `json:"status" bson:"status"` // "interested", "applied", "submitted"
+	EndDate       time.Time `json:"end_date" bson:"end_date"`
+	TrackedAt     time.Time `json:"tracked_at" bson:"tracked_at"`
+}

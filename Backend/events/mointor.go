@@ -1,10 +1,13 @@
 package events
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"devflow-scheduler/config"
+	"devflow-scheduler/model"
 	"devflow-scheduler/repository"
 	"devflow-scheduler/services"
 
@@ -330,6 +333,55 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 							}
 						}
 					}
+				}
+			}
+		}
+	}()
+
+	// ─── Hackathon Tracking Monitor ───
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		log.Println("🚀 [Monitor] Started hackathon tracking monitor (every 1 hour)")
+
+		for range ticker.C {
+			if config.HackathonTrackingCollection == nil {
+				continue
+			}
+
+			now := time.Now()
+			
+			// Only send emails at roughly 10 AM
+			if now.Hour() != 10 {
+				continue
+			}
+
+			ctx := context.Background()
+			
+			// Find hackathons that are tracked and NOT yet submitted
+			filter := map[string]interface{}{
+				"status": map[string]interface{}{"$ne": "submitted"},
+			}
+			
+			cursor, err := config.HackathonTrackingCollection.Find(ctx, filter)
+			if err != nil {
+				continue
+			}
+
+			var tracked []model.HackathonTracking
+			cursor.All(ctx, &tracked)
+
+			for _, t := range tracked {
+				daysUntil := int(time.Until(t.EndDate).Hours() / 24)
+
+				// 5 days before deadline: "Reminder to Apply/Submit"
+				// Every day after that: "Daily Reminder"
+				if daysUntil <= 5 && daysUntil >= 0 {
+					subject := fmt.Sprintf("⚠️ Hackathon Reminder: %s ends in %d days!", t.HackathonName, daysUntil)
+					body := fmt.Sprintf("Hi there,\n\nThe hackathon %s on %s is ending in %d days.\n\nCurrent Status: %s\n\nPlease make sure to submit your project before the deadline.\n\nHappy Hacking,\nDevFlow Scheduler", t.HackathonName, t.Platform, daysUntil, t.Status)
+					
+					// Use delayed email with 0 delay just to enqueue it
+					HandleDelayedEmail(rdb, t.Email, subject, body, 0)
+					log.Printf("🚀 [Hackathon Monitor] Sent reminder to %s for %s", t.Email, t.HackathonName)
 				}
 			}
 		}

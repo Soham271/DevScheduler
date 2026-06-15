@@ -95,6 +95,18 @@ export const api = {
     return request('POST', '/hackathons/submit', data, true);
   },
 
+  trackHackathon: async (data) => {
+    return request('POST', '/hackathons/track', data, true);
+  },
+
+  updateHackathonStatus: async (data) => {
+    return request('POST', '/hackathons/track/status', data, true);
+  },
+
+  getTrackedHackathons: async () => {
+    return request('GET', '/hackathons/tracked', null, true);
+  },
+
   checkHealth: async () => {
     return request('GET', '/health', null, false);
   },

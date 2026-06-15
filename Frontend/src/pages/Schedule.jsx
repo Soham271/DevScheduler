@@ -1,7 +1,8 @@
+/* DESIGN UPDATE: Schedule page polish — amber focus ring, distinct button styles, info note */
 import React, { useMemo, useState } from 'react';
 import { api } from '../services/api';
 import { getUserEmail } from '../utils/auth';
-import { Activity, Calendar, Clock, Mail, Send } from 'lucide-react';
+import { Activity, Calendar, Clock, Info, Mail, Send } from 'lucide-react';
 
 const Schedule = () => {
   const email = getUserEmail();
@@ -20,7 +21,8 @@ const Schedule = () => {
     sendAt: defSend,
   });
 
-  const inp = 'w-full pl-10 pr-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-charcoal)] transition placeholder:text-[var(--color-cool-gray)]';
+  /* DESIGN UPDATE: warm amber focus ring on inputs */
+  const inp = 'w-full pl-10 pr-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none transition placeholder:text-[var(--color-cool-gray)]';
 
   const doSchedule = async (e) => {
     e.preventDefault();
@@ -60,8 +62,9 @@ const Schedule = () => {
     <div className="w-full max-w-5xl mx-auto animate-fade-in-up">
       <section className="bg-[var(--color-canvas-white)] rounded-[12px] shadow-[var(--shadow-subtle-3)] border border-[var(--color-ash-gray)] p-6">
         <div className="mb-5">
-          <span className="text-xs font-bold text-[var(--color-charcoal)] uppercase tracking-wider">Reminders</span>
-          <h1 className="text-2xl font-bold text-[var(--color-charcoal)] mt-1">Schedule or Send Email</h1>
+          {/* DESIGN UPDATE: uppercase 10px label */}
+          <span className="text-[10px] font-bold text-[var(--color-slate-blue)] uppercase tracking-[0.1em]">Reminders</span>
+          <h1 className="text-2xl font-bold text-[var(--color-charcoal)] mt-1" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.06)" }}>Schedule or Send Email</h1>
         </div>
 
         <form onSubmit={doSchedule} className="space-y-4">
@@ -72,13 +75,13 @@ const Schedule = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-1.5">Subject</label>
-              <input type="text" value={form.subject} onChange={(e) => setForm((c) => ({ ...c, subject: e.target.value }))} placeholder="Subject" required className="w-full px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-charcoal)] transition placeholder:text-[var(--color-cool-gray)]" />
+              <input type="text" value={form.subject} onChange={(e) => setForm((c) => ({ ...c, subject: e.target.value }))} placeholder="Subject" required className="w-full px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none transition placeholder:text-[var(--color-cool-gray)]" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-1.5">Message</label>
-            <textarea value={form.body} onChange={(e) => setForm((c) => ({ ...c, body: e.target.value }))} placeholder="Write your reminder..." required className="w-full px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-charcoal)] transition placeholder:text-[var(--color-cool-gray)] min-h-[120px] resize-y" />
+            <textarea value={form.body} onChange={(e) => setForm((c) => ({ ...c, body: e.target.value }))} placeholder="Write your reminder..." required className="w-full px-4 py-3 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] text-[var(--color-charcoal)] text-sm focus:outline-none transition placeholder:text-[var(--color-cool-gray)] min-h-[120px] resize-y" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-end">
@@ -87,10 +90,12 @@ const Schedule = () => {
               <div className="relative"><Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-cool-gray)]" size={17} /><input type="datetime-local" value={form.sendAt} onChange={(e) => setForm((c) => ({ ...c, sendAt: e.target.value }))} required className={inp} /></div>
             </div>
             <div className="flex gap-2">
-              <button type="submit" disabled={scheduling} className="flex items-center gap-1.5 px-4 py-2.5 rounded-[16px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] text-sm font-medium text-[var(--color-charcoal)] hover:bg-[var(--color-buttermilk)] transition disabled:opacity-50 shadow-[var(--shadow-subtle-3)]">
+              {/* DESIGN UPDATE: "Schedule" button — outlined teal style */}
+              <button type="submit" disabled={scheduling} className="flex items-center gap-1.5 px-4 py-2.5 rounded-[16px] border-2 border-teal-500 bg-transparent text-sm font-semibold text-teal-600 hover:bg-teal-50 transition-all duration-200 disabled:opacity-50">
                 {scheduling ? <Activity size={15} className="icon-spin" /> : <Calendar size={15} />} Schedule
               </button>
-              <button type="button" onClick={doSend} disabled={sending} className="flex items-center gap-1.5 px-4 py-2.5 rounded-[16px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] text-sm font-medium text-[var(--color-charcoal)] hover:bg-[var(--color-buttermilk)] transition disabled:opacity-50 shadow-[var(--shadow-subtle-3)]">
+              {/* DESIGN UPDATE: "Send Now" button — filled dark style */}
+              <button type="button" onClick={doSend} disabled={sending} className="btn-primary-dark flex items-center gap-1.5 px-4 py-2.5 rounded-[16px] border border-[var(--color-charcoal)] bg-[var(--color-charcoal)] text-sm font-semibold text-[var(--color-canvas-white)] hover:bg-[#333] transition-all duration-200 disabled:opacity-50 shadow-[var(--shadow-subtle-3)]">
                 {sending ? <Activity size={15} className="icon-spin" /> : <Send size={15} />} Send Now
               </button>
             </div>
@@ -98,6 +103,14 @@ const Schedule = () => {
 
           {status && <div className={`mt-3 p-3 rounded-[12px] text-sm text-center ${status.t === 'ok' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>{status.m}</div>}
         </form>
+
+        {/* DESIGN UPDATE: info note below the form */}
+        <div className="mt-4 flex items-start gap-2 rounded-[12px] border border-[var(--color-ash-gray)] bg-[var(--color-buttermilk)] p-3">
+          <Info size={14} className="mt-0.5 shrink-0 text-[var(--color-cool-gray)]" />
+          <p className="text-xs text-[var(--color-cool-gray)]">
+            Emails are sent via your configured SMTP. Times are in your local timezone.
+          </p>
+        </div>
       </section>
     </div>
   );

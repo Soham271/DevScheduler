@@ -103,20 +103,6 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 				b := fmt.Sprintf("Hi %s,\n\nYou haven't solved any problems on %s today. Please solve at least one problem to keep your streak going!\n\nHappy Coding,\nDevFlow Scheduler", username, platform)
 				events.HandleDelayedEmail(rdb, m, s, b, 5*time.Minute)
 			}
-
-			c.JSON(http.StatusOK, gin.H{
-				"message":           "⚠️ You are inactive today!",
-				"is_inactive_today": true,
-				"submissions_today": false,
-				"username":          username,
-				"platform":          platform,
-				"profile_hidden":    true,
-				"warning":           genMsg(username, platform),
-				"suggestion":        "Try solving one Easy-level problem right now to get started. Even one submission counts! 💪",
-			})
-
-			go events.HandleUserAnalysis(rdb, platform, username)
-			return
 		}
 
 		
@@ -126,10 +112,20 @@ func AnalyzeUser(rdb *redis.Client) gin.HandlerFunc {
 		go events.HandleUserAnalysis(rdb, platform, username)
 
 		
+		message := "Analysis complete"
+		if profile.IsInactiveToday {
+			message = "⚠️ You are inactive today!"
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"message":           "Analysis complete",
+			"message":           message,
 			"is_inactive_today": profile.IsInactiveToday,
 			"submissions_today": profile.SubmissionsToday,
+			"username":          username,
+			"platform":          platform,
+			"profile_hidden":    false,
+			"warning":           genMsg(username, platform),
+			"suggestion":        "Try solving one Easy-level problem right now to get started. Even one submission counts! 💪",
 			"analysis":          result,
 		})
 	}

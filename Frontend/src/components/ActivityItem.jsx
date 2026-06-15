@@ -57,11 +57,11 @@ const ActivityItem = ({ activity, onMarkRead }) => {
     <button
       type="button"
       onClick={() => !activity.read && onMarkRead?.(activity.id)}
-      className={`relative z-10 w-full rounded-[20px] border p-4 text-left transition ${
-        activity.read
-          ? "border-[var(--color-ash-gray)] bg-[rgba(255,255,255,0.62)]"
-          : "border-[rgba(27,25,23,0.12)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)]"
-      }`}
+
+      className={`relative z-10 w-full rounded-[20px] border p-4 text-left transition-all duration-200 cursor-pointer hover:border-l-2 hover:border-l-[#10b981] hover:bg-[#F0FDF4] ${activity.read
+        ? "border-[var(--color-ash-gray)] bg-[rgba(255,255,255,0.62)]"
+        : "border-[rgba(27,25,23,0.12)] bg-[var(--color-canvas-white)] shadow-[var(--shadow-subtle-3)]"
+        }`}
     >
       <div className="flex items-start gap-3">
         <div

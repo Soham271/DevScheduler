@@ -64,8 +64,9 @@ const ActivityFeed = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* DESIGN UPDATE: pulsing green dot animation on Live badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-[var(--color-canvas-white)] px-3 py-1.5 text-xs font-semibold text-emerald-600">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] live-pulse" />
               Live
             </div>
             {activities.length > 0 && (

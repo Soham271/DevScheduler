@@ -21,7 +21,7 @@ const statusStyle = {
   'Check site':  { cls: 'bg-gray-100 text-gray-600',       icon: '⚪' },
 };
 
-const HackathonCard = ({ hackathon }) => {
+const HackathonCard = ({ hackathon, trackedStatus, onTrack, onUpdateStatus }) => {
   const meta = platformMeta[hackathon.platform] || {
     label: hackathon.platform, color: 'text-gray-600', bg: 'bg-gray-50',
     border: 'border-gray-200', dot: 'bg-gray-400', fallbackUrl: '#',
@@ -30,9 +30,9 @@ const HackathonCard = ({ hackathon }) => {
   const status = statusStyle[hackathon.time_remaining] || statusStyle['Check site'];
 
   return (
-    <div className={`group bg-white rounded-2xl border ${meta.border} shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden`}>
+    <div className={`group bg-white rounded-2xl border ${meta.border} shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col`}>
       <div className={`h-1 w-full ${meta.dot}`} />
-      <div className="p-5">
+      <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-3">
           <div className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${meta.color}`}>
             <Zap size={12} /> {meta.label}
@@ -45,19 +45,54 @@ const HackathonCard = ({ hackathon }) => {
           {hackathon.name}
         </h3>
         {hackathon.scheduled_at && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4 flex-1">
             <Clock size={11} />
             <span className="line-clamp-1">{hackathon.scheduled_at}</span>
           </div>
         )}
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${meta.bg} ${meta.color} hover:opacity-80 transition-opacity no-underline`}
-        >
-          <ExternalLink size={11} /> View Hackathon
-        </a>
+        
+        <div className="flex flex-col gap-2 mt-auto">
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className={`flex justify-center items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg ${meta.bg} ${meta.color} hover:opacity-80 transition-opacity no-underline w-full`}
+          >
+            <ExternalLink size={11} /> View Hackathon
+          </a>
+          
+          {/* Tracking Controls */}
+          {trackedStatus === undefined ? (
+            <button
+              onClick={() => onTrack(hackathon)}
+              className="flex justify-center items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors w-full"
+            >
+              <AlertCircle size={11} /> Track Reminders
+            </button>
+          ) : trackedStatus === 'interested' ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateStatus(hackathon, 'applied')}
+                className="flex-1 justify-center items-center text-xs font-semibold px-2 py-2 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+              >
+                Mark Applied
+              </button>
+            </div>
+          ) : trackedStatus === 'applied' ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateStatus(hackathon, 'submitted')}
+                className="flex-1 justify-center items-center text-xs font-semibold px-2 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+              >
+                Mark Submitted
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-center items-center text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-600 w-full border border-emerald-100">
+              ✅ Successfully Submitted
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -202,6 +237,7 @@ const SubmitModal = ({ isOpen, onClose, onSuccess }) => {
 const Hackathons = () => {
   const [all, setAll] = useState([]);
   const [filtered, setFiltered] = useState([]);
+  const [tracked, setTracked] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -215,31 +251,41 @@ const Hackathons = () => {
     else setLoading(true);
     setError('');
 
-    const [devpostRes, heRes, unstopRes, devfolioRes, localRes] = await Promise.allSettled([
-      api.getContests('devpost'),
-      api.getContests('hackerearth'),
-      api.getContests('unstop'),
-      api.getContests('devfolio'),
-      api.getContests('local'),
-    ]);
+    try {
+      const [devpostRes, heRes, unstopRes, devfolioRes, localRes, trackedRes] = await Promise.allSettled([
+        api.getContests('devpost'),
+        api.getContests('hackerearth'),
+        api.getContests('unstop'),
+        api.getContests('devfolio'),
+        api.getContests('local'),
+        api.getTrackedHackathons(),
+      ]);
 
-    const items = [];
-    if (devpostRes.status === 'fulfilled') items.push(...(devpostRes.value?.contests || []));
-    
-    if (heRes.status === 'fulfilled') {
-      const heItems = heRes.value?.contests || [];
-      if (heItems.length === 0) setHEKeyMissing(true);
-      items.push(...heItems);
+      const items = [];
+      if (devpostRes.status === 'fulfilled') items.push(...(devpostRes.value?.contests || []));
+      
+      if (heRes.status === 'fulfilled') {
+        const heItems = heRes.value?.contests || [];
+        if (heItems.length === 0) setHEKeyMissing(true);
+        items.push(...heItems);
+      }
+
+      if (unstopRes.status === 'fulfilled') items.push(...(unstopRes.value?.contests || []));
+      if (devfolioRes.status === 'fulfilled') items.push(...(devfolioRes.value?.contests || []));
+      if (localRes.status === 'fulfilled') items.push(...(localRes.value?.contests || []));
+
+      setAll(items);
+      setFiltered(items);
+
+      if (trackedRes.status === 'fulfilled') {
+        setTracked(trackedRes.value?.tracked || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    if (unstopRes.status === 'fulfilled') items.push(...(unstopRes.value?.contests || []));
-    if (devfolioRes.status === 'fulfilled') items.push(...(devfolioRes.value?.contests || []));
-    if (localRes.status === 'fulfilled') items.push(...(localRes.value?.contests || []));
-
-    setAll(items);
-    setFiltered(items);
-    setLoading(false);
-    setRefreshing(false);
   }, []);
 
   useEffect(() => { loadHackathons(); }, [loadHackathons]);
@@ -250,6 +296,37 @@ const Hackathons = () => {
     if (search.trim()) result = result.filter(h => h.name.toLowerCase().includes(search.toLowerCase()));
     setFiltered(result);
   }, [search, activePlatform, all]);
+
+  const handleTrack = async (hackathon) => {
+    try {
+      // Mock an end date 5 days from now for public hackathons if not present
+      let endDate = hackathon.scheduled_at; 
+      if (!endDate) endDate = new Date(Date.now() + 5*24*60*60*1000).toISOString();
+      else endDate = new Date(Date.now() + 5*24*60*60*1000).toISOString();
+
+      await api.trackHackathon({
+        hackathon_name: hackathon.name,
+        platform: hackathon.platform,
+        end_date: endDate
+      });
+      loadHackathons(true);
+    } catch (err) {
+      alert(err.message || 'Failed to track hackathon');
+    }
+  };
+
+  const handleUpdateStatus = async (hackathon, status) => {
+    try {
+      await api.updateHackathonStatus({
+        hackathon_name: hackathon.name,
+        platform: hackathon.platform,
+        status: status
+      });
+      loadHackathons(true);
+    } catch (err) {
+      alert(err.message || 'Failed to update status');
+    }
+  };
 
   const activePlatforms = ['all', ...new Set(all.map(h => h.platform))];
   const platformLabel = { all: 'All', devpost: 'Devpost', hackerearth: 'HackerEarth', unstop: 'Unstop', devfolio: 'Devfolio', local: 'Local' };
@@ -335,9 +412,18 @@ const Hackathons = () => {
         </div>
       ) : filtered.length > 0 ? (
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((h, i) => (
-            <HackathonCard key={`${h.platform}-${h.name}-${i}`} hackathon={h} />
-          ))}
+          {filtered.map((h, i) => {
+            const trackInfo = tracked.find(t => t.hackathon_name === h.name && t.platform === h.platform);
+            return (
+              <HackathonCard 
+                key={`${h.platform}-${h.name}-${i}`} 
+                hackathon={h}
+                trackedStatus={trackInfo?.status}
+                onTrack={handleTrack}
+                onUpdateStatus={handleUpdateStatus}
+              />
+            );
+          })}
         </section>
       ) : (
         <div className="bg-white rounded-[12px] border border-[var(--color-ash-gray)] p-10 text-center">

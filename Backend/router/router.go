@@ -56,6 +56,11 @@ func SetupRouter(rdb *redis.Client) *gin.Engine {
 
 		// Hackathon Submission
 		protected.POST("/hackathons/submit", handler.SubmitHackathon())
+
+		// Hackathon Tracking
+		protected.POST("/hackathons/track", handler.TrackHackathon())
+		protected.POST("/hackathons/track/status", handler.UpdateHackathonStatus())
+		protected.GET("/hackathons/tracked", handler.GetTrackedHackathons())
 	}
 
 	
