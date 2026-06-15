@@ -324,7 +324,8 @@ const Dashboard = () => {
           />
         </section>
 
-        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <section className="flex flex-col gap-6">
+          {/* Analyze Profile (Full width) */}
           <div className={`${shellCard} p-5 sm:p-6`}>
             <div className="flex flex-col gap-4 border-b border-[rgba(27,25,23,0.08)] pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -522,7 +523,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0, height: 0 }} 
                   animate={{ opacity: 1, height: "auto" }} 
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-5 grid gap-6 lg:grid-cols-[0.92fr_1.08fr] overflow-hidden"
+                  className="mt-5 grid gap-6 grid-cols-1 overflow-hidden"
                 >
                 <div className="rounded-[22px] border border-[var(--color-ash-gray)] bg-[var(--color-canvas-white)] p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -627,56 +628,58 @@ const Dashboard = () => {
               )}
             </AnimatePresence>
           </div>
+        </section>
 
-          <div className="flex flex-col gap-6">
-            <div>
-              <ActivityFeed />
-            </div>
+        {/* Activity Feed (Full width) */}
+        <section className="flex flex-col gap-6">
+          <div className={`${shellCard} p-5 sm:p-6`}>
+            <ActivityFeed />
+          </div>
 
-            <section className="grid gap-6">
-              <Link
-                to="/contests"
-                className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
-                  Contests
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
-                  Open Live Contest Page
-                </h3>
-                <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
-                  All countdowns in one dedicated screen.
-                </p>
-              </Link>
-              <Link
-                to="/schedule"
-                className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
-                  Schedule
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
-                  Email Scheduler
-                </h3>
-                <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
-                  Set date/time with calendar and send reminders.
-                </p>
-              </Link>
-              <Link
-                to="/watch"
-                className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
-                  Watch
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
-                  Watched Handles
-                </h3>
-                <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
-                  Monitor handles and manage watch list.
-                </p>
-              </Link>
-            </section>
+          {/* 3 Utility Cards (Side-by-side horizontally) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link
+              to="/contests"
+              className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+                Contests
+              </p>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
+                Open Live Contest Page
+              </h3>
+              <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
+                All countdowns in one dedicated screen.
+              </p>
+            </Link>
+            <Link
+              to="/schedule"
+              className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+                Schedule
+              </p>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
+                Email Scheduler
+              </h3>
+              <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
+                Set date/time with calendar and send reminders.
+              </p>
+            </Link>
+            <Link
+              to="/watch"
+              className={`${shellCard} no-underline p-5 transition hover:-translate-y-[2px]`}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-slate-blue)]">
+                Watch
+              </p>
+              <h3 className="mt-2 text-lg font-semibold text-[var(--color-charcoal)]">
+                Watched Handles
+              </h3>
+              <p className="mt-1 text-sm text-[var(--color-cool-gray)]">
+                Monitor handles and manage watch list.
+              </p>
+            </Link>
           </div>
         </section>
       </div>
