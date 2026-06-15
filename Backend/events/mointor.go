@@ -228,6 +228,16 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				} else {
 					if profile.SubmissionsToday {
 						submissionsToday = 1
+					} else {
+						lastSolvedKey := fmt.Sprintf("last_solved:%s:%s", u.Platform, u.Username)
+						val, err := rdb.Get(context.Background(), lastSolvedKey).Int()
+						if err == nil && profile.TotalSolved > val {
+							submissionsToday = profile.TotalSolved - val
+						}
+						// Always update the last_solved for future checks
+						if profile.TotalSolved > 0 {
+							rdb.Set(context.Background(), lastSolvedKey, profile.TotalSolved, 24 * time.Hour)
+						}
 					}
 				}
 

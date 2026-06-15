@@ -48,7 +48,7 @@ func BuildInactivityReminderBody(username, platform string, reminderNum, totalSo
 		message = "Time is running out — solve a problem before midnight!"
 	}
 
-	return fmt.Sprintf(`%s LeetCode Inactivity Reminder — DevFlow Scheduler
+	return fmt.Sprintf(`%s %s Inactivity Reminder — DevFlow Scheduler
 ═══════════════════════════════════════════════════
 
 Hey %s! 👋
@@ -65,7 +65,7 @@ Hey %s! 👋
 🔔 This is reminder #%d of %d.
    Reminders will stop once you solve a problem or after %d alerts.
 
-%s`, urgency, username, message, platform, totalSolved, reminderNum, MaxInactivityReminders, MaxInactivityReminders, emailFooter)
+%s`, urgency, platform, username, message, platform, totalSolved, reminderNum, MaxInactivityReminders, MaxInactivityReminders, emailFooter)
 }
 
 
