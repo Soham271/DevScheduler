@@ -8,49 +8,42 @@ import (
 	"log"
 )
 
-
-
-
 func handleDelayedEmail(job model.Job) {
 	var payload DelayedEmailPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
-		log.Printf("❌ [Delayed Email] Failed to parse payload for job %s: %v", job.ID, err)
+		log.Printf("[Delayed Email] Failed to parse payload for job %s: %v", job.ID, err)
 		return
 	}
 
-	log.Printf("📨 [Delayed Email] Sending to %s — Subject: %q", payload.To, payload.Subject)
+	log.Printf("[Delayed Email] Sending to %s - Subject: %q", payload.To, payload.Subject)
 
-	
 	body := services.BuildDelayedEmailBody(payload.Subject, payload.Body)
 
 	err := services.SendEmail(payload.To, payload.Subject, body)
 	if err != nil {
-		log.Printf("❌ [Delayed Email] FAILED to send to %s: %v", payload.To, err)
+		log.Printf("[Delayed Email] FAILED to send to %s: %v", payload.To, err)
 		return
 	}
 
-	log.Printf("✅ [Delayed Email] Successfully sent to %s (job %s)", payload.To, job.ID)
+	log.Printf("[Delayed Email] Successfully sent to %s (job %s)", payload.To, job.ID)
 
-	
 	if WorkerRDB != nil {
 		services.EmitEmailActivity(WorkerRDB,
 			"Scheduled Email Sent",
-			fmt.Sprintf("Email sent to %s — \"%s\"", payload.To, payload.Subject),
+			fmt.Sprintf("Email sent to %s - %q", payload.To, payload.Subject),
 			map[string]string{"to": payload.To, "subject": payload.Subject},
 		)
 	}
 }
 
-
-
 func handleInactivityReminder(job model.Job) {
 	var payload InactivityReminderPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
-		log.Printf("❌ [Inactivity Reminder] Failed to parse payload for job %s: %v", job.ID, err)
+		log.Printf("[Inactivity Reminder] Failed to parse payload for job %s: %v", job.ID, err)
 		return
 	}
 
-	log.Printf("🔔 [Inactivity Reminder] Sending reminder #%d to %s for %s@%s",
+	log.Printf("[Inactivity Reminder] Sending reminder #%d to %s for %s@%s",
 		payload.ReminderNum, payload.Email, payload.Username, payload.Platform)
 
 	subject := services.BuildInactivityReminderSubject(payload.Username, payload.ReminderNum)
@@ -58,32 +51,33 @@ func handleInactivityReminder(job model.Job) {
 
 	err := services.SendEmail(payload.Email, subject, body)
 	if err != nil {
-		log.Printf("❌ [Inactivity Reminder] FAILED to send to %s: %v", payload.Email, err)
+		if WorkerRDB != nil {
+			services.DecrInactivityCount(WorkerRDB, payload.Platform, payload.Username)
+		}
+		log.Printf("[Inactivity Reminder] FAILED to send to %s: %v", payload.Email, err)
 		return
 	}
 
-	log.Printf("✅ [Inactivity Reminder] Reminder #%d sent to %s (job %s)", payload.ReminderNum, payload.Email, job.ID)
-
-	
 	if WorkerRDB != nil {
+		services.SetLastReminderSent(WorkerRDB, payload.Platform, payload.Username)
 		services.EmitReminderActivity(WorkerRDB, model.PriorityWarning,
 			fmt.Sprintf("Inactivity Reminder #%d Sent", payload.ReminderNum),
-			fmt.Sprintf("%s@%s hasn't solved anything today — reminder sent to %s", payload.Username, payload.Platform, payload.Email),
+			fmt.Sprintf("%s@%s hasn't solved anything today - reminder sent to %s", payload.Username, payload.Platform, payload.Email),
 			map[string]string{"username": payload.Username, "platform": payload.Platform, "reminder_num": fmt.Sprintf("%d", payload.ReminderNum)},
 		)
 	}
+
+	log.Printf("[Inactivity Reminder] Reminder #%d sent to %s (job %s)", payload.ReminderNum, payload.Email, job.ID)
 }
-
-
 
 func handleContestReminder(job model.Job) {
 	var payload ContestReminderPayload
 	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
-		log.Printf("❌ [Contest Reminder] Failed to parse payload for job %s: %v", job.ID, err)
+		log.Printf("[Contest Reminder] Failed to parse payload for job %s: %v", job.ID, err)
 		return
 	}
 
-	log.Printf("🏁 [Contest Reminder] Sending %d-min reminder for %s to %s",
+	log.Printf("[Contest Reminder] Sending %d-min reminder for %s to %s",
 		payload.MinutesBefore, payload.ContestName, payload.Email)
 
 	subject := services.BuildContestReminderSubject(payload.ContestName, payload.MinutesBefore)
@@ -91,14 +85,13 @@ func handleContestReminder(job model.Job) {
 
 	err := services.SendEmail(payload.Email, subject, body)
 	if err != nil {
-		log.Printf("❌ [Contest Reminder] FAILED to send to %s: %v", payload.Email, err)
+		log.Printf("[Contest Reminder] FAILED to send to %s: %v", payload.Email, err)
 		return
 	}
 
-	log.Printf("✅ [Contest Reminder] %d-min reminder sent for %s to %s (job %s)",
+	log.Printf("[Contest Reminder] %d-min reminder sent for %s to %s (job %s)",
 		payload.MinutesBefore, payload.ContestName, payload.Email, job.ID)
 
-	
 	if WorkerRDB != nil {
 		services.EmitContestActivity(WorkerRDB,
 			fmt.Sprintf("Contest in %d minutes!", payload.MinutesBefore),

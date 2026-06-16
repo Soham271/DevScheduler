@@ -17,7 +17,6 @@ import (
 
 var ctx = context.Background()
 
-
 func HandleUserAnalysis(rdb *redis.Client, platform, username string) {
 	log.Printf("[Event] Triggering intelligent analysis for %s@%s", username, platform)
 
@@ -47,7 +46,6 @@ func HandleUserAnalysis(rdb *redis.Client, platform, username string) {
 	saveJobToRedis(rdb, newJob)
 }
 
-
 func HandleContestEvent(rdb *redis.Client, platform, contestName, userEmail string, delay time.Duration) {
 	log.Printf("[Event] Contest approaching: %s on %s", contestName, platform)
 
@@ -67,7 +65,6 @@ func HandleContestEvent(rdb *redis.Client, platform, contestName, userEmail stri
 	saveJobToRedis(rdb, newJob)
 }
 
-
 func HandleUserInactivity(rdb *redis.Client, username string) {
 	log.Printf("[Event] User inactivity detected for: %s", username)
 
@@ -77,7 +74,6 @@ func HandleUserInactivity(rdb *redis.Client, username string) {
 	newJob := model.NewJob(workers.JobTypeLeetCodeDaily, 0, string(payloadBytes))
 	saveJobToRedis(rdb, newJob)
 }
-
 
 func HandleDelayedEmail(rdb *redis.Client, to, subject, body string, delay time.Duration) {
 	log.Printf("[Event] Creating delayed email job to %s with delay %s", to, delay)
@@ -93,7 +89,6 @@ func HandleDelayedEmail(rdb *redis.Client, to, subject, body string, delay time.
 	saveJobToRedis(rdb, newJob)
 }
 
-
 func HandleScheduledEmail(rdb *redis.Client, to, subject, body string, sendAt time.Time) {
 	log.Printf("[Event] Creating scheduled email job to %s at %s", to, sendAt.Format(time.RFC3339))
 
@@ -107,7 +102,6 @@ func HandleScheduledEmail(rdb *redis.Client, to, subject, body string, sendAt ti
 	newJob := model.NewJobAt(workers.JobTypeDelayedEmail, sendAt, string(payloadBytes))
 	saveJobToRedis(rdb, newJob)
 }
-
 
 func HandleInactivityReminder(rdb *redis.Client, platform, username, email string, reminderNum, totalSolved int) {
 	log.Printf("[Event] Creating inactivity reminder #%d for %s@%s", reminderNum, username, platform)
@@ -123,9 +117,7 @@ func HandleInactivityReminder(rdb *redis.Client, platform, username, email strin
 
 	newJob := model.NewJob(workers.JobTypeLeetCodeInactivity, 0, string(payloadBytes))
 	saveJobToRedis(rdb, newJob)
-	services.SetLastReminderSent(rdb, platform, username)
 }
-
 
 func HandleContestReminderEvent(rdb *redis.Client, platform, contestName, email, startTime, timeRemaining string, minutesBefore int) bool {
 	if services.IsContestReminderSent(rdb, platform, contestName, minutesBefore) {
@@ -162,7 +154,6 @@ func saveJobToRedis(rdb *redis.Client, job *model.Job) {
 	}
 	log.Printf("Job %s [%s] stored in Redis queue", job.ID, job.Type)
 }
-
 
 func GetRegisteredUsers(rdb *redis.Client) []struct {
 	Platform string

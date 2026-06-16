@@ -19,18 +19,11 @@ type MonitoredRegistration struct {
 	ExpiresAt    string `json:"expires_at"`
 }
 
-
 const MaxInactivityReminders = 50
-
 
 const ReminderIntervalMinutes = 60
 
-
 const MonitoringTTL = 30 * 24 * time.Hour
-
-
-
-
 
 func GetUserActivity(rdb *redis.Client, platform, username string) int {
 	key := fmt.Sprintf("user_activity:%s:%s", platform, username)
@@ -42,14 +35,10 @@ func GetUserActivity(rdb *redis.Client, platform, username string) int {
 	return count
 }
 
-
 func SetUserActivity(rdb *redis.Client, platform, username string, solvedCount int) {
 	key := fmt.Sprintf("user_activity:%s:%s", platform, username)
 	rdb.Set(rctx, key, strconv.Itoa(solvedCount), 24*time.Hour)
 }
-
-
-
 
 func GetInactivityCount(rdb *redis.Client, platform, username string) int {
 	key := fmt.Sprintf("inactivity_count:%s:%s", platform, username)
@@ -61,7 +50,6 @@ func GetInactivityCount(rdb *redis.Client, platform, username string) int {
 	return count
 }
 
-
 func IncrInactivityCount(rdb *redis.Client, platform, username string) int {
 	key := fmt.Sprintf("inactivity_count:%s:%s", platform, username)
 	val, err := rdb.Incr(rctx, key).Result()
@@ -69,19 +57,30 @@ func IncrInactivityCount(rdb *redis.Client, platform, username string) int {
 		log.Printf("❌ Failed to increment inactivity count for %s@%s: %v", username, platform, err)
 		return 0
 	}
-	
+
 	rdb.ExpireAt(rctx, key, nextMidnightIST())
 	return int(val)
 }
 
+func DecrInactivityCount(rdb *redis.Client, platform, username string) int {
+	key := fmt.Sprintf("inactivity_count:%s:%s", platform, username)
+	val, err := rdb.Decr(rctx, key).Result()
+	if err != nil {
+		log.Printf("❌ Failed to decrement inactivity count for %s@%s: %v", username, platform, err)
+		return 0
+	}
+	if val < 0 {
+		rdb.Del(rctx, key)
+		return 0
+	}
+	rdb.ExpireAt(rctx, key, nextMidnightIST())
+	return int(val)
+}
 
 func ResetInactivityCount(rdb *redis.Client, platform, username string) {
 	key := fmt.Sprintf("inactivity_count:%s:%s", platform, username)
 	rdb.Del(rctx, key)
 }
-
-
-
 
 func GetInactivityDate(rdb *redis.Client, platform, username string) string {
 	key := fmt.Sprintf("inactivity_date:%s:%s", platform, username)
@@ -89,15 +88,10 @@ func GetInactivityDate(rdb *redis.Client, platform, username string) string {
 	return val
 }
 
-
 func SetInactivityDate(rdb *redis.Client, platform, username string, date string) {
 	key := fmt.Sprintf("inactivity_date:%s:%s", platform, username)
 	rdb.Set(rctx, key, date, 24*time.Hour)
 }
-
-
-
-
 
 func GetLastReminderSent(rdb *redis.Client, platform, username string) time.Time {
 	key := fmt.Sprintf("last_reminder_sent:%s:%s", platform, username)
@@ -109,14 +103,10 @@ func GetLastReminderSent(rdb *redis.Client, platform, username string) time.Time
 	return time.Unix(ts, 0)
 }
 
-
 func SetLastReminderSent(rdb *redis.Client, platform, username string) {
 	key := fmt.Sprintf("last_reminder_sent:%s:%s", platform, username)
 	rdb.Set(rctx, key, strconv.FormatInt(time.Now().Unix(), 10), 24*time.Hour)
 }
-
-
-
 
 func IsContestReminderSent(rdb *redis.Client, platform, contest string, minutesBefore int) bool {
 	key := fmt.Sprintf("contest_reminder_sent:%s:%s:%d", platform, contest, minutesBefore)
@@ -127,16 +117,10 @@ func IsContestReminderSent(rdb *redis.Client, platform, contest string, minutesB
 	return val == "1"
 }
 
-
-
 func MarkContestReminderSent(rdb *redis.Client, platform, contest string, minutesBefore int) {
 	key := fmt.Sprintf("contest_reminder_sent:%s:%s:%d", platform, contest, minutesBefore)
 	rdb.Set(rctx, key, "1", 24*time.Hour)
 }
-
-
-
-
 
 func GetUserEmail(rdb *redis.Client, platform, username string) string {
 	registration, ok := GetMonitoredRegistration(rdb, platform, username)
@@ -164,8 +148,6 @@ func SaveMonitoredRegistration(rdb *redis.Client, platform, username, email stri
 	}
 	return registration, nil
 }
-
-
 
 func GetMonitoredRegistration(rdb *redis.Client, platform, username string) (*MonitoredRegistration, bool) {
 	key := fmt.Sprintf("registered_user:%s:%s", platform, username)
