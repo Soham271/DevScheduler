@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"devflow-scheduler/config"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/redis/go-redis/v9"
 )
-
 
 var monitorIST *time.Location
 
@@ -25,13 +25,14 @@ func init() {
 	}
 }
 
-
-
+func normalizedPlatform(value string) string {
+	return strings.ToLower(strings.TrimSpace(value))
+}
 
 func StartSimulatedMonitors(rdb *redis.Client) {
-	
+
 	go func() {
-		
+
 		ticker := time.NewTicker(5 * time.Minute)
 		log.Println("🔍 [Monitor] Started periodic user analysis monitor (every 5 min)")
 
@@ -49,7 +50,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		log.Println("🏁 [Monitor] Started contest reminder monitor (every 1 min)")
@@ -62,7 +62,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				continue
 			}
 
-			
 			if now.Weekday() == time.Wednesday {
 				for _, u := range users {
 					if u.Platform == "codechef" {
@@ -71,7 +70,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			
 			if now.Weekday() == time.Sunday {
 				for _, u := range users {
 					if u.Platform == "leetcode" {
@@ -80,7 +78,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			
 			_, week := now.ISOWeek()
 			if now.Weekday() == time.Saturday && week%2 == 0 {
 				for _, u := range users {
@@ -90,7 +87,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			
 			if now.Weekday() == time.Saturday {
 				for _, u := range users {
 					if u.Platform == "codeforces" {
@@ -99,7 +95,6 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				}
 			}
 
-			
 			if now.Weekday() == time.Thursday {
 				for _, u := range users {
 					if u.Platform == "codeforces" {
@@ -110,11 +105,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	
-	
-	
 	go func() {
-		
+
 		ticker := time.NewTicker(10 * time.Minute)
 		log.Println("🐙 [Monitor] Started GitHub Dev Pulse monitor (every 10 min)")
 
@@ -200,6 +192,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					email = services.GetUserEmail(rdb, u.Platform, u.Username)
 				}
 				if email == "" {
+					log.Printf("⚠️ [Inactivity Monitor] Skipping %s@%s: no email found for reminder delivery",
+						u.Username, u.Platform)
 					continue
 				}
 
@@ -211,6 +205,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 
 				reminderCount := services.GetInactivityCount(rdb, u.Platform, u.Username)
 				if reminderCount >= services.MaxInactivityReminders {
+					log.Printf("ℹ️ [Inactivity Monitor] Skipping %s@%s: max reminders reached for today (%d)",
+						u.Username, u.Platform, reminderCount)
 					continue
 				}
 
@@ -236,7 +232,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 						}
 						// Always update the last_solved for future checks
 						if profile.TotalSolved > 0 {
-							rdb.Set(context.Background(), lastSolvedKey, profile.TotalSolved, 24 * time.Hour)
+							rdb.Set(context.Background(), lastSolvedKey, profile.TotalSolved, 24*time.Hour)
 						}
 					}
 				}
@@ -264,11 +260,15 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				if !lastSent.IsZero() {
 					elapsed := time.Since(lastSent).Minutes()
 					if elapsed < float64(intervalMinutes) {
+						log.Printf("ℹ️ [Inactivity Monitor] Skipping %s@%s: throttle active (%.1f/ %d min elapsed)",
+							u.Username, u.Platform, elapsed, intervalMinutes)
 						continue
 					}
 				}
 
 				newCount := services.IncrInactivityCount(rdb, u.Platform, u.Username)
+				log.Printf("📨 [Inactivity Monitor] Queueing reminder #%d for %s@%s (%s)",
+					newCount, u.Username, u.Platform, email)
 				HandleInactivityReminder(rdb, u.Platform, u.Username, email, newCount, profile.TotalSolved)
 
 				log.Printf("📧 [Inactivity Monitor] Sent reminder #%d to %s@%s (%s)",
@@ -277,19 +277,14 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 		}
 	}()
 
-	
-	
-	
-	
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		log.Println("⏰ [Monitor] Started contest countdown reminder monitor (every 1 min)")
 
-		
 		countdownSlots := []int{60, 30, 15, 5, 1}
 
 		for range ticker.C {
-			
+
 			contests := services.GetUpcomingContests("")
 			if len(contests) == 0 {
 				continue
@@ -315,7 +310,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 					if minutesUntil >= slot-1 && minutesUntil <= slot+1 {
 						// Send to all users on this platform
 						for _, u := range users {
-							if u.Platform != contest.Platform {
+							if normalizedPlatform(u.Platform) != normalizedPlatform(contest.Platform) {
 								continue
 							}
 
@@ -324,6 +319,8 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 								email = services.GetUserEmail(rdb, u.Platform, u.Username)
 							}
 							if email == "" {
+								log.Printf("⚠️ [Contest Monitor] Skipping %s@%s for %s: no email found",
+									u.Username, u.Platform, contest.Name)
 								continue
 							}
 
@@ -359,19 +356,19 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 			}
 
 			now := time.Now()
-			
+
 			// Only send emails at roughly 10 AM
 			if now.Hour() != 10 {
 				continue
 			}
 
 			ctx := context.Background()
-			
+
 			// Find hackathons that are tracked and NOT yet submitted
 			filter := map[string]interface{}{
 				"status": map[string]interface{}{"$ne": "submitted"},
 			}
-			
+
 			cursor, err := config.HackathonTrackingCollection.Find(ctx, filter)
 			if err != nil {
 				continue
@@ -388,7 +385,7 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 				if daysUntil <= 5 && daysUntil >= 0 {
 					subject := fmt.Sprintf("⚠️ Hackathon Reminder: %s ends in %d days!", t.HackathonName, daysUntil)
 					body := fmt.Sprintf("Hi there,\n\nThe hackathon %s on %s is ending in %d days.\n\nCurrent Status: %s\n\nPlease make sure to submit your project before the deadline.\n\nHappy Hacking,\nDevFlow Scheduler", t.HackathonName, t.Platform, daysUntil, t.Status)
-					
+
 					// Use delayed email with 0 delay just to enqueue it
 					HandleDelayedEmail(rdb, t.Email, subject, body, 0)
 					log.Printf("🚀 [Hackathon Monitor] Sent reminder to %s for %s", t.Email, t.HackathonName)
@@ -398,18 +395,17 @@ func StartSimulatedMonitors(rdb *redis.Client) {
 	}()
 }
 
-
 func parseContestTime(scheduledAt string) (time.Time, error) {
-	
+
 	layout := "Mon, 02 Jan 2006 03:04 PM MST"
 	t, err := time.Parse(layout, scheduledAt)
 	if err != nil {
-		
+
 		loc, _ := time.LoadLocation("Asia/Kolkata")
 		if loc == nil {
 			loc = time.FixedZone("IST", 5*3600+30*60)
 		}
-		
+
 		layout2 := "Mon, 02 Jan 2006 03:04 PM"
 		t, err = time.ParseInLocation(layout2+" MST", scheduledAt, loc)
 		if err != nil {
